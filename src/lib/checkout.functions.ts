@@ -1,0 +1,65 @@
+// TEST-MODE CHECKOUT
+// TODO: replace this stub with real Paystack /transaction/initialize once
+// the Paystack account is approved. The downstream fulfillment logic stays
+// the same — only `payAndFulfill` body changes.
+
+import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { fulfill } from "./reseller.server";
+
+export const payAndFulfill = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ orderId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+
+    const { data: order, error: oErr } = await supabaseAdmin
+      .from("orders")
+      .select("*")
+      .eq("id", data.orderId)
+      .eq("user_id", userId)
+      .single();
+    if (oErr || !order) throw new Error("Order not found");
+    if (order.status !== "pending") {
+      return { status: order.status };
+    }
+
+    const reference = `TEST-${order.id.slice(0, 8)}-${Date.now()}`;
+
+    await supabaseAdmin.from("payments").insert({
+      order_id: order.id,
+      reference,
+      amount_ghs: order.amount_ghs,
+      status: "success",
+      provider: "test-mode",
+      metadata: { note: "Test checkout — Paystack pending approval" },
+    });
+
+    await supabaseAdmin
+      .from("orders")
+      .update({ status: "paid", paystack_reference: reference })
+      .eq("id", order.id);
+
+    const result = await fulfill({
+      network: order.network,
+      dataMb: order.data_mb,
+      recipientPhone: order.recipient_phone,
+      orderId: order.id,
+    });
+
+    if (result.ok) {
+      await supabaseAdmin
+        .from("orders")
+        .update({ status: "delivered", reseller_reference: result.reference })
+        .eq("id", order.id);
+      return { status: "delivered" as const };
+    } else {
+      await supabaseAdmin
+        .from("orders")
+        .update({ status: "failed", notes: result.error })
+        .eq("id", order.id);
+      return { status: "failed" as const, error: result.error };
+    }
+  });
