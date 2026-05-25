@@ -1,25 +1,18 @@
-// TEST-MODE CHECKOUT
-// TODO: replace this stub with real Paystack /transaction/initialize once
-// the Paystack account is approved. The downstream fulfillment logic stays
-// the same — only `payAndFulfill` body changes.
+// TEST-MODE CHECKOUT — supports guest checkout.
+// TODO: replace with real Paystack /transaction/initialize once approved.
 
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { fulfill } from "./reseller.server";
 
 export const payAndFulfill = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ orderId: z.string().uuid() }).parse(input))
-  .handler(async ({ data, context }) => {
-    const { userId } = context;
-
+  .handler(async ({ data }) => {
     const { data: order, error: oErr } = await supabaseAdmin
       .from("orders")
       .select("*")
       .eq("id", data.orderId)
-      .eq("user_id", userId)
       .single();
     if (oErr || !order) throw new Error("Order not found");
     if (order.status !== "pending") {

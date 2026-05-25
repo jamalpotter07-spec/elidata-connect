@@ -17,6 +17,7 @@ export type Database = {
       bundles: {
         Row: {
           active: boolean
+          cost_price_ghs: number | null
           created_at: string
           data_mb: number
           id: string
@@ -29,6 +30,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          cost_price_ghs?: number | null
           created_at?: string
           data_mb: number
           id?: string
@@ -41,6 +43,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          cost_price_ghs?: number | null
           created_at?: string
           data_mb?: number
           id?: string
@@ -59,6 +62,7 @@ export type Database = {
           bundle_id: string
           created_at: string
           data_mb: number
+          guest_email: string | null
           id: string
           network: Database["public"]["Enums"]["network"]
           notes: string | null
@@ -67,13 +71,14 @@ export type Database = {
           reseller_reference: string | null
           status: Database["public"]["Enums"]["order_status"]
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           amount_ghs: number
           bundle_id: string
           created_at?: string
           data_mb: number
+          guest_email?: string | null
           id?: string
           network: Database["public"]["Enums"]["network"]
           notes?: string | null
@@ -82,13 +87,14 @@ export type Database = {
           reseller_reference?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           amount_ghs?: number
           bundle_id?: string
           created_at?: string
           data_mb?: number
+          guest_email?: string | null
           id?: string
           network?: Database["public"]["Enums"]["network"]
           notes?: string | null
@@ -97,7 +103,7 @@ export type Database = {
           reseller_reference?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {

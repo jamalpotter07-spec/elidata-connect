@@ -16,8 +16,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { createOrder } from "@/lib/orders.functions";
 import { payAndFulfill } from "@/lib/checkout.functions";
 import { toast } from "sonner";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, Link } from "@tanstack/react-router";
 import { NetworkBadge } from "./status-badge";
+import { useAuth } from "@/hooks/use-auth";
 
 type Bundle = {
   id: string;
@@ -37,7 +38,9 @@ export function CheckoutDialog({
   open: boolean;
   onOpenChange: (o: boolean) => void;
 }) {
+  const { user } = useAuth();
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const create = useServerFn(createOrder);
   const pay = useServerFn(payAndFulfill);
@@ -53,19 +56,16 @@ export function CheckoutDialog({
     setBusy(true);
     try {
       const { orderId } = await create({
-        data: { bundleId: bundle.id, recipientPhone: phone.trim() },
+        data: { bundleId: bundle.id, recipientPhone: phone.trim(), guestEmail: email.trim() },
       });
       const result = await pay({ data: { orderId } });
-      if (result.status === "delivered") {
-        toast.success("Bundle delivered!");
-      } else if (result.status === "failed") {
-        toast.error("Delivery failed — try again or contact support");
-      } else {
-        toast.message("Order recorded");
-      }
+      if (result.status === "delivered") toast.success("Bundle delivered!");
+      else if (result.status === "failed") toast.error("Delivery failed — contact support");
+      else toast.message("Order recorded");
       onOpenChange(false);
       setPhone("");
-      navigate({ to: "/orders/$orderId", params: { orderId } });
+      setEmail("");
+      navigate({ to: user ? "/orders/$orderId" : "/track/$orderId", params: { orderId } });
     } catch (e: any) {
       toast.error(e?.message ?? "Checkout failed");
     } finally {
@@ -87,25 +87,45 @@ export function CheckoutDialog({
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            Test checkout mode — real card payments unlock once Paystack approves the account.
+            Test checkout — real card payments unlock once Paystack approves the account.
           </AlertDescription>
         </Alert>
-        <div className="space-y-2">
-          <Label htmlFor="phone">Recipient phone number</Label>
-          <Input
-            id="phone"
-            placeholder="0241234567"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            inputMode="numeric"
-          />
+        <div className="space-y-3">
+          <div className="space-y-1">
+            <Label htmlFor="phone">Recipient phone number</Label>
+            <Input
+              id="phone"
+              placeholder="0241234567"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              inputMode="numeric"
+            />
+          </div>
+          {!user && (
+            <div className="space-y-1">
+              <Label htmlFor="email" className="text-muted-foreground">
+                Email <span className="text-xs">(optional — for receipt)</span>
+              </Label>
+              <Input
+                id="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                type="email"
+              />
+              <p className="text-xs text-muted-foreground">
+                No account needed.{" "}
+                <Link to="/signup" className="underline">Sign up</Link> to save your history.
+              </p>
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>
             Cancel
           </Button>
           <Button onClick={onConfirm} disabled={busy}>
-            {busy ? "Processing..." : "Confirm (Test)"}
+            {busy ? "Processing..." : `Pay GHS ${Number(bundle.price_ghs).toFixed(2)}`}
           </Button>
         </DialogFooter>
       </DialogContent>
