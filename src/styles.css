@@ -98,6 +98,13 @@
   --mtn: #FFCC00;
   --telecel: #E30613;
   --at: #00A4E4;
+  /* Brand (Datamart-inspired): deep navy + warm orange */
+  --brand-navy: 218 50% 22%;
+  --brand-navy-2: 218 60% 32%;
+  --brand-orange: 28 95% 55%;
+  --primary: oklch(0.32 0.08 258);
+  --primary-foreground: oklch(0.99 0 0);
+  --ring: oklch(0.55 0.18 50);
 }
 
 .dark {
