@@ -1,26 +1,34 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const phoneSchema = z
   .string()
   .trim()
   .regex(/^0\d{9}$/, "Enter a valid 10-digit Ghana phone number starting with 0");
 
+// Guest-friendly: works for signed-in users AND anonymous guests.
+// If a Supabase access token is forwarded, we attribute the order to that user.
 export const createOrder = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
     z
       .object({
         bundleId: z.string().uuid(),
         recipientPhone: phoneSchema,
+        guestEmail: z.string().email().optional().or(z.literal("")).transform((v) => v || undefined),
       })
       .parse(input),
   )
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+  .handler(async ({ data, request }) => {
+    let userId: string | null = null;
+    const auth = request?.headers.get("authorization");
+    if (auth?.startsWith("Bearer ")) {
+      const { data: u } = await supabaseAdmin.auth.getUser(auth.slice(7));
+      userId = u.user?.id ?? null;
+    }
 
-    const { data: bundle, error: bErr } = await supabase
+    const { data: bundle, error: bErr } = await supabaseAdmin
       .from("bundles")
       .select("id, network, data_mb, price_ghs, active")
       .eq("id", data.bundleId)
@@ -28,7 +36,7 @@ export const createOrder = createServerFn({ method: "POST" })
     if (bErr || !bundle) throw new Error("Bundle not found");
     if (!bundle.active) throw new Error("Bundle is no longer available");
 
-    const { data: order, error } = await supabase
+    const { data: order, error } = await supabaseAdmin
       .from("orders")
       .insert({
         user_id: userId,
@@ -36,6 +44,7 @@ export const createOrder = createServerFn({ method: "POST" })
         network: bundle.network,
         data_mb: bundle.data_mb,
         recipient_phone: data.recipientPhone,
+        guest_email: userId ? null : data.guestEmail ?? null,
         amount_ghs: bundle.price_ghs,
         status: "pending",
       })
@@ -66,6 +75,19 @@ export const getMyOrder = createServerFn({ method: "GET" })
     const { data: order, error } = await supabase
       .from("orders")
       .select("*")
+      .eq("id", data.orderId)
+      .single();
+    if (error) throw new Error(error.message);
+    return { order };
+  });
+
+// Public lookup by ID — for guests to track their order
+export const getGuestOrder = createServerFn({ method: "GET" })
+  .inputValidator((input) => z.object({ orderId: z.string().uuid() }).parse(input))
+  .handler(async ({ data }) => {
+    const { data: order, error } = await supabaseAdmin
+      .from("orders")
+      .select("id, network, data_mb, recipient_phone, amount_ghs, status, created_at, paystack_reference, reseller_reference")
       .eq("id", data.orderId)
       .single();
     if (error) throw new Error(error.message);
