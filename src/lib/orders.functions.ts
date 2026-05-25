@@ -21,12 +21,17 @@ export const createOrder = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data, request }) => {
+  .handler(async ({ data }) => {
     let userId: string | null = null;
-    const auth = request?.headers.get("authorization");
-    if (auth?.startsWith("Bearer ")) {
-      const { data: u } = await supabaseAdmin.auth.getUser(auth.slice(7));
-      userId = u.user?.id ?? null;
+    try {
+      const req = getRequest();
+      const auth = req?.headers.get("authorization");
+      if (auth?.startsWith("Bearer ")) {
+        const { data: u } = await supabaseAdmin.auth.getUser(auth.slice(7));
+        userId = u.user?.id ?? null;
+      }
+    } catch {
+      // no request context — treat as guest
     }
 
     const { data: bundle, error: bErr } = await supabaseAdmin
