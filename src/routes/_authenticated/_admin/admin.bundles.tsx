@@ -21,12 +21,13 @@ type Bundle = {
   name: string;
   data_mb: number;
   price_ghs: number;
+  cost_price_ghs?: number | null;
   validity: string;
   active: boolean;
   sort_order: number;
 };
 
-const empty: Bundle = { network: "MTN", name: "", data_mb: 1024, price_ghs: 5, validity: "30 days", active: true, sort_order: 0 };
+const empty: Bundle = { network: "MTN", name: "", data_mb: 1024, price_ghs: 5, cost_price_ghs: 0, validity: "30 days", active: true, sort_order: 0 };
 
 function AdminBundles() {
   const qc = useQueryClient();
@@ -87,8 +88,12 @@ function AdminBundles() {
                 <Input type="number" value={editing.data_mb} onChange={(e) => setEditing({ ...editing, data_mb: Number(e.target.value) })} />
               </div>
               <div className="space-y-1">
-                <Label>Price (GHS)</Label>
+                <Label>Sell price (GHS)</Label>
                 <Input type="number" step="0.01" value={editing.price_ghs} onChange={(e) => setEditing({ ...editing, price_ghs: Number(e.target.value) })} />
+              </div>
+              <div className="space-y-1">
+                <Label>API base cost (GHS)</Label>
+                <Input type="number" step="0.01" value={editing.cost_price_ghs ?? 0} onChange={(e) => setEditing({ ...editing, cost_price_ghs: Number(e.target.value) })} />
               </div>
               <div className="space-y-1">
                 <Label>Validity</Label>
@@ -118,27 +123,34 @@ function AdminBundles() {
               <TableHead>Network</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Data</TableHead>
-              <TableHead>Price</TableHead>
-              <TableHead>Validity</TableHead>
+              <TableHead>API cost</TableHead>
+              <TableHead>Sell price</TableHead>
+              <TableHead>Margin</TableHead>
               <TableHead>Active</TableHead>
               <TableHead></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {(data?.bundles ?? []).map((b: any) => (
+            {(data?.bundles ?? []).map((b: any) => {
+              const cost = Number(b.cost_price_ghs ?? 0);
+              const price = Number(b.price_ghs);
+              const margin = cost > 0 ? (((price - cost) / price) * 100).toFixed(0) + "%" : "—";
+              return (
               <TableRow key={b.id}>
                 <TableCell><NetworkBadge network={b.network} /></TableCell>
                 <TableCell>{b.name}</TableCell>
                 <TableCell>{(b.data_mb / 1024).toFixed(1)} GB</TableCell>
-                <TableCell>GHS {Number(b.price_ghs).toFixed(2)}</TableCell>
-                <TableCell>{b.validity}</TableCell>
+                <TableCell className="text-muted-foreground">{cost > 0 ? `GHS ${cost.toFixed(2)}` : "—"}</TableCell>
+                <TableCell className="font-medium">GHS {price.toFixed(2)}</TableCell>
+                <TableCell>{margin}</TableCell>
                 <TableCell>{b.active ? "Yes" : "No"}</TableCell>
                 <TableCell className="space-x-2 text-right">
                   <Button variant="outline" size="sm" onClick={() => { setEditing(b); setOpen(true); }}>Edit</Button>
                   <Button variant="destructive" size="sm" onClick={() => remove(b.id)}>Delete</Button>
                 </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
           </TableBody>
         </Table>
       </div>

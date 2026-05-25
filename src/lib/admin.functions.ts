@@ -62,6 +62,7 @@ const bundleInput = z.object({
   name: z.string().min(1).max(100),
   data_mb: z.number().int().positive(),
   price_ghs: z.number().positive(),
+  cost_price_ghs: z.number().nonnegative().nullable().optional(),
   validity: z.string().min(1).max(50),
   active: z.boolean(),
   sort_order: z.number().int().default(0),
