@@ -32,6 +32,9 @@ export function NavBar() {
           <Link to="/" className="hidden sm:inline-block px-3 py-2 text-sm text-muted-foreground hover:text-foreground">
             Bundles
           </Link>
+          <Link to="/about" className="hidden sm:inline-block px-3 py-2 text-sm text-muted-foreground hover:text-foreground">
+            About
+          </Link>
           {!loading && user ? (
             <>
               <Link

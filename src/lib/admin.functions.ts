@@ -157,3 +157,82 @@ export const checkAmAdmin = createServerFn({ method: "GET" })
       .maybeSingle();
     return { isAdmin: !!data };
   });
+
+export const adminGetOrder = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ orderId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { data: order, error } = await supabaseAdmin
+      .from("orders")
+      .select("*")
+      .eq("id", data.orderId)
+      .single();
+    if (error) throw new Error(error.message);
+    const { data: payments } = await supabaseAdmin
+      .from("payments")
+      .select("*")
+      .eq("order_id", data.orderId)
+      .order("created_at", { ascending: false });
+    return { order, payments: payments ?? [] };
+  });
+
+export const adminUpdateOrder = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({
+      orderId: z.string().uuid(),
+      status: z.enum(["pending", "paid", "processing", "delivered", "failed", "refunded"]).optional(),
+      notes: z.string().max(2000).optional(),
+      resellerReference: z.string().max(200).optional(),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const patch: { status?: any; notes?: string; reseller_reference?: string } = {};
+    if (data.status) patch.status = data.status;
+    if (data.notes !== undefined) patch.notes = data.notes;
+    if (data.resellerReference !== undefined) patch.reseller_reference = data.resellerReference;
+    const { error } = await supabaseAdmin.from("orders").update(patch).eq("id", data.orderId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+// "Preorder with own funds" — admin pays the bill on behalf of the customer
+// when Paystack is unavailable. Records a payment row tagged 'manual-admin'.
+export const adminMarkPaidManual = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({
+      orderId: z.string().uuid(),
+      note: z.string().max(500).optional(),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { data: order, error: oErr } = await supabaseAdmin
+      .from("orders")
+      .select("*").eq("id", data.orderId).single();
+    if (oErr || !order) throw new Error("Order not found");
+
+    const reference = `MANUAL-${order.id.slice(0, 8)}-${Date.now()}`;
+    await supabaseAdmin.from("payments").insert({
+      order_id: order.id,
+      reference,
+      amount_ghs: order.amount_ghs,
+      status: "success",
+      provider: "manual-admin",
+      metadata: { paid_by: context.userId, note: data.note ?? "Preordered with admin funds" },
+    });
+    const { error } = await supabaseAdmin
+      .from("orders")
+      .update({
+        status: "paid",
+        paystack_reference: reference,
+        notes: data.note ?? "Preordered with admin funds",
+      })
+      .eq("id", order.id);
+    if (error) throw new Error(error.message);
+    return { ok: true, reference };
+  });
+
