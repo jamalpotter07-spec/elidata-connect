@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
  */
 export function LiveClock({ className = "h-5 w-5" }: { className?: string }) {
   const [t, setT] = useState(() => performance.now());
-  const raf = useRef<number>();
+  const raf = useRef<number | null>(null);
   useEffect(() => {
     const loop = () => {
       setT(performance.now());
