@@ -4,6 +4,8 @@ type Theme = "light" | "dark" | "system";
 type Ctx = { theme: Theme; setTheme: (t: Theme) => void; resolved: "light" | "dark" };
 const ThemeCtx = createContext<Ctx | null>(null);
 
+const DEFAULT_THEME: Theme = "dark";
+
 function applyTheme(t: Theme): "light" | "dark" {
   const sys = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   const resolved = t === "system" ? sys : t;
@@ -12,16 +14,16 @@ function applyTheme(t: Theme): "light" | "dark" {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("system");
-  const [resolved, setResolved] = useState<"light" | "dark">("light");
+  const [theme, setThemeState] = useState<Theme>(DEFAULT_THEME);
+  const [resolved, setResolved] = useState<"light" | "dark">("dark");
 
   useEffect(() => {
-    const stored = (localStorage.getItem("theme") as Theme) || "system";
+    const stored = (localStorage.getItem("theme") as Theme) || DEFAULT_THEME;
     setThemeState(stored);
     setResolved(applyTheme(stored));
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const onChange = () => {
-      const t = (localStorage.getItem("theme") as Theme) || "system";
+      const t = (localStorage.getItem("theme") as Theme) || DEFAULT_THEME;
       if (t === "system") setResolved(applyTheme("system"));
     };
     mq.addEventListener("change", onChange);
@@ -45,7 +47,7 @@ export function useTheme() {
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
-  const next = theme === "light" ? "dark" : theme === "dark" ? "system" : "light";
+  const next = theme === "dark" ? "light" : theme === "light" ? "system" : "dark";
   const label = theme === "system" ? "Auto" : theme === "dark" ? "Dark" : "Light";
   return (
     <button
