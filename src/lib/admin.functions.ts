@@ -189,7 +189,7 @@ export const adminUpdateOrder = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const patch: Record<string, unknown> = {};
+    const patch: { status?: any; notes?: string; reseller_reference?: string } = {};
     if (data.status) patch.status = data.status;
     if (data.notes !== undefined) patch.notes = data.notes;
     if (data.resellerReference !== undefined) patch.reseller_reference = data.resellerReference;
