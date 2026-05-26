@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { adminListOrders } from "@/lib/admin.functions";
@@ -32,8 +32,10 @@ function AdminOrders() {
             {isLoading ? (
               <TableRow><TableCell colSpan={7}>Loading…</TableCell></TableRow>
             ) : orders.map((o: any) => (
-              <TableRow key={o.id}>
-                <TableCell className="font-mono text-xs">{o.id.slice(0, 8)}</TableCell>
+              <TableRow key={o.id} className="cursor-pointer hover:bg-muted/40">
+                <TableCell className="font-mono text-xs">
+                  <Link to="/admin/orders/$orderId" params={{ orderId: o.id }} className="hover:underline">{o.id.slice(0, 8)}</Link>
+                </TableCell>
                 <TableCell><NetworkBadge network={o.network} /></TableCell>
                 <TableCell>{(o.data_mb / 1024).toFixed(1)} GB</TableCell>
                 <TableCell>{o.recipient_phone}</TableCell>
