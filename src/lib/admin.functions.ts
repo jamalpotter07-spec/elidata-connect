@@ -238,3 +238,61 @@ export const adminMarkPaidManual = createServerFn({ method: "POST" })
     return { ok: true, reference };
   });
 
+// Re-attempt delivery via reseller API (use after a failed delivery or stuck order).
+export const adminRetryDelivery = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ orderId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { data: order, error } = await supabaseAdmin
+      .from("orders").select("*").eq("id", data.orderId).single();
+    if (error || !order) throw new Error("Order not found");
+    if (!["paid", "failed", "processing"].includes(order.status)) {
+      throw new Error(`Cannot retry from status: ${order.status}`);
+    }
+    await supabaseAdmin.from("orders").update({ status: "processing" }).eq("id", order.id);
+    const result = await fulfill({
+      network: order.network as any,
+      dataMb: order.data_mb,
+      recipientPhone: order.recipient_phone,
+      orderId: order.id,
+    });
+    if (result.ok) {
+      await supabaseAdmin.from("orders")
+        .update({ status: "delivered", reseller_reference: result.reference })
+        .eq("id", order.id);
+      await notifyAdmin(`🔁 <b>Retry delivered</b> ${order.network} → ${order.recipient_phone}`);
+      return { ok: true, status: "delivered" as const };
+    }
+    await supabaseAdmin.from("orders")
+      .update({ status: "failed", notes: result.error }).eq("id", order.id);
+    await notifyAdmin(`🔁❌ <b>Retry failed</b> ${order.network} → ${order.recipient_phone}\n${result.error}`);
+    return { ok: false, status: "failed" as const, error: result.error };
+  });
+
+// Mark an order as refunded (records the action; actual money movement is manual).
+export const adminRefundOrder = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({ orderId: z.string().uuid(), reason: z.string().max(500).optional() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { data: order, error } = await supabaseAdmin
+      .from("orders").select("*").eq("id", data.orderId).single();
+    if (error || !order) throw new Error("Order not found");
+    await supabaseAdmin.from("payments").insert({
+      order_id: order.id,
+      reference: `REFUND-${order.id.slice(0, 8)}-${Date.now()}`,
+      amount_ghs: -Number(order.amount_ghs),
+      status: "success",
+      provider: "refund",
+      metadata: { refunded_by: context.userId, reason: data.reason ?? "" },
+    });
+    await supabaseAdmin.from("orders")
+      .update({ status: "refunded", notes: `Refunded: ${data.reason ?? "no reason given"}` })
+      .eq("id", order.id);
+    await notifyAdmin(`💸 <b>Refund</b> GHS ${Number(order.amount_ghs).toFixed(2)} · ${order.network} → ${order.recipient_phone}\nReason: ${data.reason ?? "—"}`);
+    return { ok: true };
+  });
+
