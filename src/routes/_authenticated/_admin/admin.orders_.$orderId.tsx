@@ -120,6 +120,39 @@ function AdminOrderDetail() {
                 <Wallet className="h-4 w-4 mr-2" /> Preorder with own funds
               </Button>
             )}
+            {(o.status === "paid" || o.status === "failed" || o.status === "processing") && (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={async () => {
+                  if (!confirm("Retry delivery via reseller API?")) return;
+                  try {
+                    const r = await retry({ data: { orderId } });
+                    toast[r.ok ? "success" : "error"](r.ok ? "Delivered" : `Failed: ${r.error}`);
+                    qc.invalidateQueries({ queryKey: ["admin-order", orderId] });
+                  } catch (e: any) { toast.error(e?.message ?? "Failed"); }
+                }}
+              >
+                <RefreshCw className="h-4 w-4 mr-2" /> Retry delivery
+              </Button>
+            )}
+            {["paid","delivered","failed"].includes(o.status) && (
+              <Button
+                variant="outline"
+                className="w-full text-destructive border-destructive/40 hover:bg-destructive/10"
+                onClick={async () => {
+                  const reason = prompt("Refund reason (shown in notes):") ?? "";
+                  if (reason === null) return;
+                  try {
+                    await refund({ data: { orderId, reason } });
+                    toast.success("Order refunded");
+                    qc.invalidateQueries({ queryKey: ["admin-order", orderId] });
+                  } catch (e: any) { toast.error(e?.message ?? "Failed"); }
+                }}
+              >
+                <Undo2 className="h-4 w-4 mr-2" /> Refund
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>
