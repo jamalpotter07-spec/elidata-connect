@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { StatusBadge, NetworkBadge } from "@/components/status-badge";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Wallet } from "lucide-react";
+import { ArrowLeft, Wallet, RefreshCw, Undo2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/_admin/admin/orders_/$orderId")({
   component: AdminOrderDetail,
