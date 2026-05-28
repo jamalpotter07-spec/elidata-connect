@@ -64,16 +64,18 @@ function AdminHome() {
                 const cost = Number(b.cost_price_ghs ?? 0);
                 const price = Number(b.price_ghs);
                 const profit = price - cost;
-                const margin = cost > 0 ? (((price - cost) / price) * 100).toFixed(0) + "%" : "—";
+                const marginPct = cost > 0 ? ((price - cost) / price) * 100 : 0;
+                const margin = cost > 0 ? marginPct.toFixed(0) + "%" : "—";
+                const low = cost > 0 && marginPct < 10;
                 return (
-                  <TableRow key={b.id}>
+                  <TableRow key={b.id} className={low ? "bg-destructive/5" : undefined}>
                     <TableCell><NetworkBadge network={b.network} /></TableCell>
                     <TableCell className="font-medium">{b.name}</TableCell>
                     <TableCell>{(b.data_mb / 1024).toFixed(1)} GB</TableCell>
                     <TableCell className="text-muted-foreground">{cost > 0 ? `GHS ${cost.toFixed(2)}` : "—"}</TableCell>
                     <TableCell>GHS {price.toFixed(2)}</TableCell>
-                    <TableCell className={profit > 0 ? "text-green-600" : ""}>GHS {profit.toFixed(2)}</TableCell>
-                    <TableCell>{margin}</TableCell>
+                    <TableCell className={profit > 0 ? "text-green-600" : "text-destructive"}>GHS {profit.toFixed(2)}</TableCell>
+                    <TableCell className={low ? "text-destructive font-semibold" : ""}>{margin}{low ? " ⚠" : ""}</TableCell>
                   </TableRow>
                 );
               })}

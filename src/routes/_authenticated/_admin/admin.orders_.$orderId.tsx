@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { adminGetOrder, adminUpdateOrder, adminMarkPaidManual } from "@/lib/admin.functions";
+import { adminGetOrder, adminUpdateOrder, adminMarkPaidManual, adminRetryDelivery, adminRefundOrder } from "@/lib/admin.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { StatusBadge, NetworkBadge } from "@/components/status-badge";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Wallet } from "lucide-react";
+import { ArrowLeft, Wallet, RefreshCw, Undo2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/_admin/admin/orders_/$orderId")({
   component: AdminOrderDetail,
@@ -23,6 +23,8 @@ function AdminOrderDetail() {
   const getOrder = useServerFn(adminGetOrder);
   const update = useServerFn(adminUpdateOrder);
   const markPaid = useServerFn(adminMarkPaidManual);
+  const retry = useServerFn(adminRetryDelivery);
+  const refund = useServerFn(adminRefundOrder);
   const { data, isLoading } = useQuery({
     queryKey: ["admin-order", orderId],
     queryFn: () => getOrder({ data: { orderId } }),
@@ -116,6 +118,39 @@ function AdminOrderDetail() {
             {o.status === "pending" && (
               <Button onClick={preorder} variant="outline" className="w-full border-[hsl(var(--brand-orange))]/40">
                 <Wallet className="h-4 w-4 mr-2" /> Preorder with own funds
+              </Button>
+            )}
+            {(o.status === "paid" || o.status === "failed" || o.status === "processing") && (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={async () => {
+                  if (!confirm("Retry delivery via reseller API?")) return;
+                  try {
+                    const r = await retry({ data: { orderId } });
+                    toast[r.ok ? "success" : "error"](r.ok ? "Delivered" : `Failed: ${r.error}`);
+                    qc.invalidateQueries({ queryKey: ["admin-order", orderId] });
+                  } catch (e: any) { toast.error(e?.message ?? "Failed"); }
+                }}
+              >
+                <RefreshCw className="h-4 w-4 mr-2" /> Retry delivery
+              </Button>
+            )}
+            {["paid","delivered","failed"].includes(o.status) && (
+              <Button
+                variant="outline"
+                className="w-full text-destructive border-destructive/40 hover:bg-destructive/10"
+                onClick={async () => {
+                  const reason = prompt("Refund reason (shown in notes):") ?? "";
+                  if (reason === null) return;
+                  try {
+                    await refund({ data: { orderId, reason } });
+                    toast.success("Order refunded");
+                    qc.invalidateQueries({ queryKey: ["admin-order", orderId] });
+                  } catch (e: any) { toast.error(e?.message ?? "Failed"); }
+                }}
+              >
+                <Undo2 className="h-4 w-4 mr-2" /> Refund
               </Button>
             )}
           </CardContent>
