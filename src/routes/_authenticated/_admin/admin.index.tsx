@@ -61,7 +61,6 @@ function AdminHome() {
             </TableHeader>
             <TableBody>
               {bundles.map((b: any) => {
-              {bundles.map((b: any) => {
                 const cost = Number(b.cost_price_ghs ?? 0);
                 const price = Number(b.price_ghs);
                 const profit = price - cost;
