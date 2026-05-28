@@ -23,6 +23,8 @@ function AdminOrderDetail() {
   const getOrder = useServerFn(adminGetOrder);
   const update = useServerFn(adminUpdateOrder);
   const markPaid = useServerFn(adminMarkPaidManual);
+  const retry = useServerFn(adminRetryDelivery);
+  const refund = useServerFn(adminRefundOrder);
   const { data, isLoading } = useQuery({
     queryKey: ["admin-order", orderId],
     queryFn: () => getOrder({ data: { orderId } }),
