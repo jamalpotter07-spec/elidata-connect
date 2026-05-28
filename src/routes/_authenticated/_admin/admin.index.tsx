@@ -80,9 +80,6 @@ function AdminHome() {
                   </TableRow>
                 );
               })}
-                  </TableRow>
-                );
-              })}
             </TableBody>
           </Table>
         </CardContent>
