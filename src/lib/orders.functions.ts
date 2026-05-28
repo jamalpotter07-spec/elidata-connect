@@ -3,6 +3,7 @@ import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { notifyAdmin } from "./notify.server";
 
 const phoneSchema = z
   .string()
@@ -57,6 +58,9 @@ export const createOrder = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
+    await notifyAdmin(
+      `🆕 <b>New order</b>\nNetwork: ${bundle.network}\nData: ${(bundle.data_mb / 1024).toFixed(1)} GB\nPhone: ${data.recipientPhone}\nAmount: GHS ${Number(bundle.price_ghs).toFixed(2)}\nOrder: <code>${order.id}</code>`,
+    );
     return { orderId: order.id };
   });
 
