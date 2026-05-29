@@ -1,9 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { adminListBundles, adminUpsertBundle, adminDeleteBundle } from "@/lib/admin.functions";
-import { adminListBundles, adminUpsertBundle, adminDeleteBundle, adminBulkAdjustPrices } from "@/lib/admin.functions";
-
+import {
+  adminListBundles,
+  adminUpsertBundle,
+  adminDeleteBundle,
+  adminBulkAdjustPrices,
+} from "@/lib/admin.functions";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,9 +38,6 @@ function AdminBundles() {
   const qc = useQueryClient();
   const list = useServerFn(adminListBundles);
   const upsert = useServerFn(adminUpsertBundle);
-  const qc = useQueryClient();
-  const list = useServerFn(adminListBundles);
-  const upsert = useServerFn(adminUpsertBundle);
   const del = useServerFn(adminDeleteBundle);
   const bulkAdjust = useServerFn(adminBulkAdjustPrices);
   const { data } = useQuery({ queryKey: ["admin-bundles"], queryFn: () => list() });
@@ -45,18 +46,6 @@ function AdminBundles() {
   const [pct, setPct] = useState<number>(5);
   const [pctNet, setPctNet] = useState<"ALL" | "MTN" | "Telecel" | "AT">("ALL");
   const [pctBasis, setPctBasis] = useState<"sell" | "cost">("sell");
-
-  const applyBulk = async () => {
-    if (!confirm(`Adjust ${pctNet} prices by ${pct}% (basis: ${pctBasis})?`)) return;
-    try {
-      const r = await bulkAdjust({ data: { percent: pct, network: pctNet, basis: pctBasis } });
-      toast.success(`Updated ${r.updated} bundle(s)`);
-      qc.invalidateQueries({ queryKey: ["admin-bundles"] });
-      qc.invalidateQueries({ queryKey: ["bundles"] });
-    } catch (e: any) {
-      toast.error(e?.message ?? "Bulk adjust failed");
-    }
-  };
 
   const save = async () => {
     try {
@@ -75,6 +64,18 @@ function AdminBundles() {
     await del({ data: { id } });
     qc.invalidateQueries({ queryKey: ["admin-bundles"] });
     qc.invalidateQueries({ queryKey: ["bundles"] });
+  };
+
+  const applyBulk = async () => {
+    if (!confirm(`Adjust ${pctNet} prices by ${pct}% (basis: ${pctBasis})?`)) return;
+    try {
+      const r = await bulkAdjust({ data: { percent: pct, network: pctNet, basis: pctBasis } });
+      toast.success(`Updated ${r.updated} bundle(s)`);
+      qc.invalidateQueries({ queryKey: ["admin-bundles"] });
+      qc.invalidateQueries({ queryKey: ["bundles"] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Bulk adjust failed");
+    }
   };
 
   return (
@@ -135,6 +136,7 @@ function AdminBundles() {
           </DialogContent>
         </Dialog>
       </div>
+
       {/* Bulk % price adjuster */}
       <div className="mt-6 rounded-lg border bg-muted/30 p-4">
         <div className="text-sm font-medium mb-2">Bulk adjust prices by %</div>
@@ -187,26 +189,25 @@ function AdminBundles() {
               <TableHead></TableHead>
             </TableRow>
           </TableHeader>
-
           <TableBody>
             {(data?.bundles ?? []).map((b: any) => {
               const cost = Number(b.cost_price_ghs ?? 0);
               const price = Number(b.price_ghs);
               const margin = cost > 0 ? (((price - cost) / price) * 100).toFixed(0) + "%" : "—";
               return (
-              <TableRow key={b.id}>
-                <TableCell><NetworkBadge network={b.network} /></TableCell>
-                <TableCell>{b.name}</TableCell>
-                <TableCell>{(b.data_mb / 1024).toFixed(1)} GB</TableCell>
-                <TableCell className="text-muted-foreground">{cost > 0 ? `GHS ${cost.toFixed(2)}` : "—"}</TableCell>
-                <TableCell className="font-medium">GHS {price.toFixed(2)}</TableCell>
-                <TableCell>{margin}</TableCell>
-                <TableCell>{b.active ? "Yes" : "No"}</TableCell>
-                <TableCell className="space-x-2 text-right">
-                  <Button variant="outline" size="sm" onClick={() => { setEditing(b); setOpen(true); }}>Edit</Button>
-                  <Button variant="destructive" size="sm" onClick={() => remove(b.id)}>Delete</Button>
-                </TableCell>
-              </TableRow>
+                <TableRow key={b.id}>
+                  <TableCell><NetworkBadge network={b.network} /></TableCell>
+                  <TableCell>{b.name}</TableCell>
+                  <TableCell>{(b.data_mb / 1024).toFixed(1)} GB</TableCell>
+                  <TableCell className="text-muted-foreground">{cost > 0 ? `GHS ${cost.toFixed(2)}` : "—"}</TableCell>
+                  <TableCell className="font-medium">GHS {price.toFixed(2)}</TableCell>
+                  <TableCell>{margin}</TableCell>
+                  <TableCell>{b.active ? "Yes" : "No"}</TableCell>
+                  <TableCell className="space-x-2 text-right">
+                    <Button variant="outline" size="sm" onClick={() => { setEditing(b); setOpen(true); }}>Edit</Button>
+                    <Button variant="destructive" size="sm" onClick={() => remove(b.id)}>Delete</Button>
+                  </TableCell>
+                </TableRow>
               );
             })}
           </TableBody>
