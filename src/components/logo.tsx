@@ -1,26 +1,41 @@
-export function Logo({ className = "h-9 w-auto" }: { className?: string }) {
+// Eli Data Resales — wordmark + signal-wave glyph.
+export function Logo({ className = "" }: { className?: string }) {
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      <svg viewBox="0 0 40 40" className="h-9 w-9" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="lg-ring" x1="0" y1="0" x2="40" y2="40">
-            <stop offset="0%" stopColor="hsl(var(--brand-navy))" />
-            <stop offset="100%" stopColor="hsl(var(--brand-navy-2))" />
-          </linearGradient>
-        </defs>
-        <circle cx="20" cy="20" r="17" stroke="url(#lg-ring)" strokeWidth="3" strokeLinecap="round" strokeDasharray="80 30" />
-        <rect x="11" y="20" width="3.5" height="9" rx="1" fill="hsl(var(--brand-navy))" />
-        <rect x="16.5" y="15" width="3.5" height="14" rx="1" fill="hsl(var(--brand-navy))" />
-        <rect x="22" y="10" width="3.5" height="19" rx="1" fill="hsl(var(--brand-navy))" />
-        <path d="M14 22 L19 27 L29 14" stroke="hsl(var(--brand-orange))" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      </svg>
+    <div className={`flex items-center gap-2.5 ${className}`}>
+      <span className="relative inline-flex h-10 w-10 items-center justify-center">
+        <svg viewBox="0 0 44 44" className="h-10 w-10" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <linearGradient id="eli-grad" x1="0" y1="0" x2="44" y2="44">
+              <stop offset="0%" stopColor="hsl(var(--brand-navy-2))" />
+              <stop offset="100%" stopColor="hsl(var(--brand-orange))" />
+            </linearGradient>
+          </defs>
+          <rect x="2" y="2" width="40" height="40" rx="12" fill="url(#eli-grad)" />
+          {/* Signal waves */}
+          <path d="M14 26 Q22 18 30 26" stroke="white" strokeWidth="2.2" strokeLinecap="round" fill="none" opacity="0.55" />
+          <path d="M11 30 Q22 16 33 30" stroke="white" strokeWidth="2.2" strokeLinecap="round" fill="none" opacity="0.35" />
+          {/* E letter mark */}
+          <path
+            d="M17 14 H28 M17 14 V30 H28 M17 22 H26"
+            stroke="white"
+            strokeWidth="2.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          />
+          {/* Live dot */}
+          <circle cx="33" cy="11" r="3" fill="#22c55e" />
+          <circle cx="33" cy="11" r="3" fill="#22c55e" className="animate-ping origin-center" style={{ transformOrigin: "33px 11px" }} opacity="0.6" />
+        </svg>
+      </span>
       <div className="leading-tight">
-        <div className="font-extrabold tracking-tight text-lg">
-          <span style={{ color: "hsl(var(--brand-navy))" }}>Data</span>
-          <span style={{ color: "hsl(var(--brand-orange))" }}>Plug</span>
-          <span className="ml-1 text-xs font-semibold align-top text-muted-foreground">GH</span>
+        <div className="font-extrabold tracking-tight text-[17px]">
+          <span className="text-foreground">Eli</span>
+          <span className="text-[hsl(var(--brand-orange))]">Data</span>
         </div>
-        <div className="text-[10px] uppercase tracking-widest text-muted-foreground -mt-0.5">Cheap data, instantly</div>
+        <div className="text-[9px] uppercase tracking-[0.18em] text-muted-foreground -mt-0.5">
+          Resales · Ghana
+        </div>
       </div>
     </div>
   );

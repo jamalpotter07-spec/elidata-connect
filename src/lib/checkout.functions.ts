@@ -6,6 +6,7 @@ import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { fulfill } from "./reseller.server";
 import { notifyAdmin } from "./notify.server";
+import { deliveredSms } from "./sms.server";
 
 export const payAndFulfill = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ orderId: z.string().uuid() }).parse(input))
@@ -48,14 +49,24 @@ export const payAndFulfill = createServerFn({ method: "POST" })
         .from("orders")
         .update({ status: "delivered", reseller_reference: result.reference })
         .eq("id", order.id);
-      await notifyAdmin(`✅ <b>Delivered</b> ${order.network} ${(order.data_mb/1024).toFixed(1)}GB → ${order.recipient_phone}\nRef: ${result.reference}`);
+      await notifyAdmin(
+        `✅ <b>Delivered</b> ${order.network} ${(order.data_mb / 1024).toFixed(1)}GB → ${order.recipient_phone}\nRef: ${result.reference}`,
+      );
+      await deliveredSms({
+        phone: order.recipient_phone,
+        network: order.network,
+        dataMb: order.data_mb,
+        orderId: order.id,
+      });
       return { status: "delivered" as const };
-    } else {
-      await supabaseAdmin
-        .from("orders")
-        .update({ status: "failed", notes: result.error })
-        .eq("id", order.id);
-      await notifyAdmin(`❌ <b>Delivery failed</b> ${order.network} ${(order.data_mb/1024).toFixed(1)}GB → ${order.recipient_phone}\nReason: ${result.error}`);
-      return { status: "failed" as const, error: result.error };
     }
+
+    await supabaseAdmin
+      .from("orders")
+      .update({ status: "failed", notes: result.error })
+      .eq("id", order.id);
+    await notifyAdmin(
+      `❌ <b>Delivery failed</b> ${order.network} ${(order.data_mb / 1024).toFixed(1)}GB → ${order.recipient_phone}\nReason: ${result.error}`,
+    );
+    return { status: "failed" as const, error: result.error };
   });
