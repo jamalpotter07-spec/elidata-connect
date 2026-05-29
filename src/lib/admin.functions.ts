@@ -99,6 +99,36 @@ export const adminDeleteBundle = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+// Bulk-adjust sell prices by a percentage. Optional network filter.
+// Positive percent = mark up, negative = discount. E.g. percent=10 → +10%.
+export const adminBulkAdjustPrices = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({
+      percent: z.number().min(-90).max(500),
+      network: z.enum(["MTN", "Telecel", "AT", "ALL"]).default("ALL"),
+      basis: z.enum(["sell", "cost"]).default("sell"),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const factor = 1 + data.percent / 100;
+    let q = supabaseAdmin.from("bundles").select("id, price_ghs, cost_price_ghs, network");
+    if (data.network !== "ALL") q = q.eq("network", data.network);
+    const { data: rows, error: rErr } = await q;
+    if (rErr) throw new Error(rErr.message);
+    let updated = 0;
+    for (const b of rows ?? []) {
+      const base = data.basis === "cost" ? Number(b.cost_price_ghs ?? 0) : Number(b.price_ghs);
+      if (!base) continue;
+      const next = Math.round(base * factor * 100) / 100;
+      const { error } = await supabaseAdmin.from("bundles").update({ price_ghs: next }).eq("id", b.id);
+      if (!error) updated++;
+    }
+    return { ok: true, updated };
+  });
+
+
 export const adminListUsers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
