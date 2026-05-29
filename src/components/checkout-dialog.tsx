@@ -11,14 +11,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info } from "lucide-react";
+import { Info, X } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { createOrder } from "@/lib/orders.functions";
 import { payAndFulfill } from "@/lib/checkout.functions";
 import { toast } from "sonner";
-import { useNavigate, Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { NetworkBadge } from "./status-badge";
 import { useAuth } from "@/hooks/use-auth";
+import { useSavedPhones } from "@/hooks/use-saved-phones";
 
 type Bundle = {
   id: string;
@@ -40,11 +41,11 @@ export function CheckoutDialog({
 }) {
   const { user } = useAuth();
   const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const create = useServerFn(createOrder);
   const pay = useServerFn(payAndFulfill);
   const navigate = useNavigate();
+  const { phones, remember, forget } = useSavedPhones();
 
   if (!bundle) return null;
 
@@ -56,15 +57,19 @@ export function CheckoutDialog({
     setBusy(true);
     try {
       const { orderId } = await create({
-        data: { bundleId: bundle.id, recipientPhone: phone.trim(), guestEmail: email.trim() },
+        data: { bundleId: bundle.id, recipientPhone: phone.trim() },
       });
-      const result = await pay({ data: { orderId } });
-      if (result.status === "delivered") toast.success("Bundle delivered!");
-      else if (result.status === "failed") toast.error("Delivery failed — contact support");
-      else toast.message("Order recorded");
+      remember(phone.trim());
+
+      // Fire-and-forget — don't make customer wait on the slow reseller API.
+      // The tracking page polls and updates the moment delivery completes.
+      pay({ data: { orderId } }).catch(() => {
+        // Errors will surface on the tracking page via order status.
+      });
+
+      toast.success("Order received — taking you to live tracking");
       onOpenChange(false);
       setPhone("");
-      setEmail("");
       navigate({ to: user ? "/orders/$orderId" : "/track/$orderId", params: { orderId } });
     } catch (e: any) {
       toast.error(e?.message ?? "Checkout failed");
@@ -81,13 +86,13 @@ export function CheckoutDialog({
             <NetworkBadge network={bundle.network} /> {bundle.name}
           </DialogTitle>
           <DialogDescription>
-            GHS {Number(bundle.price_ghs).toFixed(2)} · {bundle.validity}
+            GHS {Number(bundle.price_ghs).toFixed(2)} · {bundle.validity} · delivered to any Ghana number
           </DialogDescription>
         </DialogHeader>
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            Test checkout — real card payments unlock once Paystack approves the account.
+            No account needed. We'll send the data to the number below.
           </AlertDescription>
         </Alert>
         <div className="space-y-3">
@@ -99,33 +104,38 @@ export function CheckoutDialog({
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               inputMode="numeric"
+              autoComplete="tel"
             />
+            {phones.length > 0 && (
+              <div className="pt-1 flex flex-wrap gap-1.5">
+                <span className="text-[11px] text-muted-foreground self-center mr-1">Recent:</span>
+                {phones.map((p) => (
+                  <span
+                    key={p}
+                    className="group inline-flex items-center gap-1 rounded-full border bg-muted/40 pl-2 pr-1 py-0.5 text-xs hover:bg-accent cursor-pointer"
+                    onClick={() => setPhone(p)}
+                  >
+                    {p}
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); forget(p); }}
+                      className="opacity-50 hover:opacity-100"
+                      aria-label={`Forget ${p}`}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
-          {!user && (
-            <div className="space-y-1">
-              <Label htmlFor="email" className="text-muted-foreground">
-                Email <span className="text-xs">(optional — for receipt)</span>
-              </Label>
-              <Input
-                id="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                type="email"
-              />
-              <p className="text-xs text-muted-foreground">
-                No account needed.{" "}
-                <Link to="/signup" className="underline">Sign up</Link> to save your history.
-              </p>
-            </div>
-          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>
             Cancel
           </Button>
           <Button onClick={onConfirm} disabled={busy}>
-            {busy ? "Processing..." : `Pay GHS ${Number(bundle.price_ghs).toFixed(2)}`}
+            {busy ? "Placing..." : `Pay GHS ${Number(bundle.price_ghs).toFixed(2)}`}
           </Button>
         </DialogFooter>
       </DialogContent>

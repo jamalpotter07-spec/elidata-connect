@@ -17,15 +17,16 @@ export const Route = createFileRoute("/")({
   component: HomePage,
   head: () => ({
     meta: [
-      { title: "DataPlug GH — Cheap MTN, Telecel & AT data bundles" },
+      { title: "Eli Data Resales — Cheap MTN, Telecel & AT data in Ghana" },
       {
         name: "description",
         content:
-          "Buy MTN, Telecel and AT data bundles at the cheapest rates in Ghana. No sign-up needed. Instant delivery 24/7.",
+          "Buy MTN, Telecel and AT data bundles at the cheapest rates in Ghana. No sign-up needed. Instant delivery, 24/7.",
       },
-      { property: "og:title", content: "DataPlug GH — Cheap data bundles" },
+      { property: "og:title", content: "Eli Data Resales — Cheap data bundles, Ghana" },
     ],
   }),
+
 });
 
 type Bundle = {
@@ -86,9 +87,10 @@ function HomePage() {
                   <a href="#bundles">Shop bundles <ArrowRight className="ml-1 h-4 w-4" /></a>
                 </Button>
                 <Button size="lg" variant="outline" asChild>
-                  <Link to="/signup">Create free account (optional)</Link>
+                  <a href="https://wa.me/233500843914" target="_blank" rel="noreferrer">Chat on WhatsApp</a>
                 </Button>
               </div>
+
               <div className="mt-8 grid grid-cols-3 gap-3 max-w-md">
                 <Feature icon={<Zap className="h-4 w-4" />} title="Instant" />
                 <Feature icon={<ShieldCheck className="h-4 w-4" />} title="Secure" />
