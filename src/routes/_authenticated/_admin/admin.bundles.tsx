@@ -135,20 +135,6 @@ function AdminBundles() {
           </DialogContent>
         </Dialog>
       </div>
-
-      <div className="mt-6 rounded-lg border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Network</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Data</TableHead>
-              <TableHead>API cost</TableHead>
-              <TableHead>Sell price</TableHead>
-              <TableHead>Margin</TableHead>
-              <TableHead>Active</TableHead>
-              <TableHead></TableHead>
-            </TableRow>
       {/* Bulk % price adjuster */}
       <div className="mt-6 rounded-lg border bg-muted/30 p-4">
         <div className="text-sm font-medium mb-2">Bulk adjust prices by %</div>
@@ -187,6 +173,20 @@ function AdminBundles() {
         </p>
       </div>
 
+      <div className="mt-6 rounded-lg border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Network</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Data</TableHead>
+              <TableHead>API cost</TableHead>
+              <TableHead>Sell price</TableHead>
+              <TableHead>Margin</TableHead>
+              <TableHead>Active</TableHead>
+              <TableHead></TableHead>
+            </TableRow>
+          </TableHeader>
 
           <TableBody>
             {(data?.bundles ?? []).map((b: any) => {
