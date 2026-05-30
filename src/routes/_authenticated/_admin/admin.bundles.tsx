@@ -43,9 +43,8 @@ function AdminBundles() {
   const { data } = useQuery({ queryKey: ["admin-bundles"], queryFn: () => list() });
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Bundle>(empty);
-  const [pct, setPct] = useState<number>(5);
+  const [pct, setPct] = useState<number>(20);
   const [pctNet, setPctNet] = useState<"ALL" | "MTN" | "Telecel" | "AT">("ALL");
-  const [pctBasis, setPctBasis] = useState<"sell" | "cost">("sell");
 
   const save = async () => {
     try {
@@ -67,10 +66,10 @@ function AdminBundles() {
   };
 
   const applyBulk = async () => {
-    if (!confirm(`Adjust ${pctNet} prices by ${pct}% (basis: ${pctBasis})?`)) return;
+    if (!confirm(`Reset ${pctNet} sell prices to API cost + ${pct}% margin?\nThis OVERWRITES current sell prices.`)) return;
     try {
-      const r = await bulkAdjust({ data: { percent: pct, network: pctNet, basis: pctBasis } });
-      toast.success(`Updated ${r.updated} bundle(s)`);
+      const r = await bulkAdjust({ data: { percent: pct, network: pctNet } });
+      toast.success(`Reset ${r.updated} bundle(s)${r.skipped ? ` · skipped ${r.skipped} (no cost)` : ""}`);
       qc.invalidateQueries({ queryKey: ["admin-bundles"] });
       qc.invalidateQueries({ queryKey: ["bundles"] });
     } catch (e: any) {
@@ -137,9 +136,13 @@ function AdminBundles() {
         </Dialog>
       </div>
 
-      {/* Bulk % price adjuster */}
+      {/* Bulk % margin reset */}
       <div className="mt-6 rounded-lg border bg-muted/30 p-4">
-        <div className="text-sm font-medium mb-2">Bulk adjust prices by %</div>
+        <div className="text-sm font-medium mb-1">Reset profit margin</div>
+        <p className="text-xs text-muted-foreground mb-3">
+          Always recomputes from API cost: <strong>sell = cost × (1 + %)</strong>.
+          Re-running with the same % gives the same prices — it never stacks.
+        </p>
         <div className="flex flex-wrap items-end gap-2">
           <div className="space-y-1">
             <Label className="text-xs">Network</Label>
@@ -154,25 +157,11 @@ function AdminBundles() {
             </Select>
           </div>
           <div className="space-y-1">
-            <Label className="text-xs">Basis</Label>
-            <Select value={pctBasis} onValueChange={(v) => setPctBasis(v as any)}>
-              <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="sell">Current sell price</SelectItem>
-                <SelectItem value="cost">API cost price</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs">Percent (+ markup, − discount)</Label>
+            <Label className="text-xs">Margin %</Label>
             <Input type="number" step="0.5" value={pct} onChange={(e) => setPct(Number(e.target.value))} className="w-32" />
           </div>
-          <Button onClick={applyBulk} variant="secondary">Apply</Button>
+          <Button onClick={applyBulk} variant="secondary">Reset prices</Button>
         </div>
-        <p className="text-xs text-muted-foreground mt-2">
-          Example: basis <em>API cost</em> + 20% sets every sell price to 1.20× its cost.
-          Basis <em>Current sell</em> + 5% bumps every active sell price up by 5%.
-        </p>
       </div>
 
       <div className="mt-6 rounded-lg border">
