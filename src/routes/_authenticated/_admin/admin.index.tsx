@@ -1,21 +1,43 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { adminStats, adminListBundles } from "@/lib/admin.functions";
+import { adminStats, adminListBundles, adminListOrders, adminRefundOrder } from "@/lib/admin.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { NetworkBadge } from "@/components/status-badge";
+import { NetworkBadge, StatusBadge } from "@/components/status-badge";
+import { Undo2 } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/_admin/admin/")({ component: AdminHome });
 
 function AdminHome() {
+  const qc = useQueryClient();
   const statsFn = useServerFn(adminStats);
   const bundlesFn = useServerFn(adminListBundles);
+  const ordersFn = useServerFn(adminListOrders);
+  const refundFn = useServerFn(adminRefundOrder);
   const { data } = useQuery({ queryKey: ["admin-stats"], queryFn: () => statsFn() });
   const { data: bundlesData } = useQuery({ queryKey: ["admin-bundles"], queryFn: () => bundlesFn() });
+  const { data: ordersData } = useQuery({ queryKey: ["admin-orders"], queryFn: () => ordersFn() });
   const counts = data?.counts ?? {};
   const bundles = bundlesData?.bundles ?? [];
+  const refundable = (ordersData?.orders ?? []).filter((o: any) =>
+    ["paid", "delivered", "failed"].includes(o.status),
+  ).slice(0, 10);
+
+  const onRefund = async (orderId: string, phone: string) => {
+    const reason = prompt(`Refund order to ${phone}?\nEnter reason (shown in notes):`);
+    if (reason === null) return;
+    try {
+      await refundFn({ data: { orderId, reason } });
+      toast.success("Customer refunded");
+      qc.invalidateQueries({ queryKey: ["admin-orders"] });
+      qc.invalidateQueries({ queryKey: ["admin-stats"] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Refund failed");
+    }
+  };
 
   const totalCost = bundles.reduce((s: number, b: any) => s + Number(b.cost_price_ghs ?? 0), 0);
   const totalPrice = bundles.reduce((s: number, b: any) => s + Number(b.price_ghs ?? 0), 0);
