@@ -105,6 +105,52 @@ function AdminHome() {
           </Table>
         </CardContent>
       </Card>
+
+      <Card className="mt-8">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Quick refunds</CardTitle>
+          <Button asChild size="sm" variant="outline"><Link to="/admin/orders">All orders</Link></Button>
+        </CardHeader>
+        <CardContent className="overflow-x-auto">
+          {refundable.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No refundable orders.</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Network</TableHead>
+                  <TableHead>Recipient</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>When</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {refundable.map((o: any) => (
+                  <TableRow key={o.id}>
+                    <TableCell><StatusBadge status={o.status} /></TableCell>
+                    <TableCell><NetworkBadge network={o.network} /></TableCell>
+                    <TableCell className="font-mono text-xs">{o.recipient_phone}</TableCell>
+                    <TableCell>GHS {Number(o.amount_ghs).toFixed(2)}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleString()}</TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-destructive border-destructive/40 hover:bg-destructive/10"
+                        onClick={() => onRefund(o.id, o.recipient_phone)}
+                      >
+                        <Undo2 className="h-3.5 w-3.5 mr-1" /> Refund
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </main>
   );
 }
