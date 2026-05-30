@@ -21,7 +21,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Buy MTN, Telecel and AT data bundles at the cheapest rates in Ghana. No sign-up needed. Instant delivery, 24/7.",
+          "Buy MTN, Telecel and AT data bundles at the cheapest rates in Ghana. No sign-up needed. Track every order live, 24/7.",
       },
       { property: "og:title", content: "Eli Data Resales — Cheap data bundles, Ghana" },
     ],
@@ -80,7 +80,7 @@ function HomePage() {
                 <span style={{ color: "hsl(var(--brand-orange))" }}>AT</span>
               </h1>
               <p className="mt-4 text-lg text-muted-foreground max-w-lg">
-                Buy data in seconds — no sign-up required. Delivered straight to any Ghana number.
+                Reseller prices, delivered to any Ghana number. Track every order live — no sign-up required.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Button size="lg" asChild className="bg-[hsl(var(--brand-orange))] hover:bg-[hsl(var(--brand-orange))]/90 text-white">
@@ -92,7 +92,7 @@ function HomePage() {
               </div>
 
               <div className="mt-8 grid grid-cols-3 gap-3 max-w-md">
-                <Feature icon={<Zap className="h-4 w-4" />} title="Instant" />
+                <Feature icon={<Zap className="h-4 w-4" />} title="Cheapest" />
                 <Feature icon={<ShieldCheck className="h-4 w-4" />} title="Secure" />
                 <Feature icon={<LiveClock className="h-4 w-4" />} title="24/7 Live" />
               </div>
@@ -134,7 +134,7 @@ function HomePage() {
           <section id="bundles" className="scroll-mt-20">
             <div className="mb-6">
               <h2 className="text-2xl md:text-3xl font-bold">Choose your bundle</h2>
-              <p className="text-muted-foreground">Switch networks below — prices update instantly.</p>
+              <p className="text-muted-foreground">Switch networks to compare prices.</p>
             </div>
             <Tabs defaultValue="MTN" className="w-full">
               <TabsList className="grid w-full max-w-md grid-cols-3 h-12 p-1">
