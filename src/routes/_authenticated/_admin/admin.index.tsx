@@ -1,21 +1,43 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { adminStats, adminListBundles } from "@/lib/admin.functions";
+import { adminStats, adminListBundles, adminListOrders, adminRefundOrder } from "@/lib/admin.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { NetworkBadge } from "@/components/status-badge";
+import { NetworkBadge, StatusBadge } from "@/components/status-badge";
+import { Undo2 } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/_admin/admin/")({ component: AdminHome });
 
 function AdminHome() {
+  const qc = useQueryClient();
   const statsFn = useServerFn(adminStats);
   const bundlesFn = useServerFn(adminListBundles);
+  const ordersFn = useServerFn(adminListOrders);
+  const refundFn = useServerFn(adminRefundOrder);
   const { data } = useQuery({ queryKey: ["admin-stats"], queryFn: () => statsFn() });
   const { data: bundlesData } = useQuery({ queryKey: ["admin-bundles"], queryFn: () => bundlesFn() });
+  const { data: ordersData } = useQuery({ queryKey: ["admin-orders"], queryFn: () => ordersFn() });
   const counts = data?.counts ?? {};
   const bundles = bundlesData?.bundles ?? [];
+  const refundable = (ordersData?.orders ?? []).filter((o: any) =>
+    ["paid", "delivered", "failed"].includes(o.status),
+  ).slice(0, 10);
+
+  const onRefund = async (orderId: string, phone: string) => {
+    const reason = prompt(`Refund order to ${phone}?\nEnter reason (shown in notes):`);
+    if (reason === null) return;
+    try {
+      await refundFn({ data: { orderId, reason } });
+      toast.success("Customer refunded");
+      qc.invalidateQueries({ queryKey: ["admin-orders"] });
+      qc.invalidateQueries({ queryKey: ["admin-stats"] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Refund failed");
+    }
+  };
 
   const totalCost = bundles.reduce((s: number, b: any) => s + Number(b.cost_price_ghs ?? 0), 0);
   const totalPrice = bundles.reduce((s: number, b: any) => s + Number(b.price_ghs ?? 0), 0);
@@ -81,6 +103,52 @@ function AdminHome() {
               })}
             </TableBody>
           </Table>
+        </CardContent>
+      </Card>
+
+      <Card className="mt-8">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Quick refunds</CardTitle>
+          <Button asChild size="sm" variant="outline"><Link to="/admin/orders">All orders</Link></Button>
+        </CardHeader>
+        <CardContent className="overflow-x-auto">
+          {refundable.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No refundable orders.</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Network</TableHead>
+                  <TableHead>Recipient</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>When</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {refundable.map((o: any) => (
+                  <TableRow key={o.id}>
+                    <TableCell><StatusBadge status={o.status} /></TableCell>
+                    <TableCell><NetworkBadge network={o.network} /></TableCell>
+                    <TableCell className="font-mono text-xs">{o.recipient_phone}</TableCell>
+                    <TableCell>GHS {Number(o.amount_ghs).toFixed(2)}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleString()}</TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-destructive border-destructive/40 hover:bg-destructive/10"
+                        onClick={() => onRefund(o.id, o.recipient_phone)}
+                      >
+                        <Undo2 className="h-3.5 w-3.5 mr-1" /> Refund
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </main>
