@@ -14,15 +14,14 @@ export type FulfillResult =
 
 const BASE = "https://mobigh.com/api/external/v1";
 
-function mobighNetwork(n: FulfillInput["network"]): number {
-  // Mobigh network IDs — common mapping for Ghana resellers
+function mobighNetwork(n: FulfillInput["network"]): string {
   switch (n) {
     case "MTN":
-      return 1;
+      return "mtn";
     case "Telecel":
-      return 2;
+      return "telecel";
     case "AT":
-      return 3;
+      return "at";
   }
 }
 
@@ -34,43 +33,42 @@ export async function fulfill(input: FulfillInput): Promise<FulfillResult> {
   }
 
   try {
-    const res = await fetch(`${BASE}/data`, {
+    const res = await fetch(`${BASE}/purchase`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Accept: "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        network: mobighNetwork(input.network),
         phone: input.recipientPhone,
         volume: input.dataMb,
-        reference: input.orderId,
+        network: mobighNetwork(input.network),
       }),
     });
 
     const body = await res.text();
-    let data: Record<string, unknown> = {};
+    let parsed: Record<string, unknown> = {};
     try {
-      data = JSON.parse(body);
+      parsed = JSON.parse(body);
     } catch {
-      // non-JSON response
+      // non-JSON
     }
 
-    if (!res.ok) {
+    if (!res.ok || parsed.status === "error") {
       const msg =
-        typeof data.message === "string"
-          ? data.message
+        typeof parsed.message === "string"
+          ? parsed.message
           : `Mobigh API error ${res.status}`;
-      console.error("Mobigh fulfill error:", res.status, body);
+      console.error("Mobigh purchase error:", res.status, body);
       return { ok: false, error: msg };
     }
 
+    const data = (parsed.data as Record<string, unknown> | undefined) ?? {};
     const ref =
       typeof data.reference === "string"
         ? data.reference
-        : typeof data.id === "string"
-          ? data.id
-          : `MBG-${input.orderId.slice(0, 8)}-${Date.now()}`;
+        : `MBG-${input.orderId.slice(0, 8)}-${Date.now()}`;
 
     return { ok: true, reference: ref };
   } catch (err) {
