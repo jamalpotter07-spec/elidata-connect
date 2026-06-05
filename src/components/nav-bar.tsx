@@ -29,10 +29,10 @@ export function NavBar() {
           <Logo />
         </Link>
         <nav className="flex items-center gap-1">
-          <Link to="/" className="hidden sm:inline-block px-3 py-2 text-sm text-muted-foreground hover:text-foreground">
+          <Link to="/" className="px-2 sm:px-3 py-2 text-sm text-muted-foreground hover:text-foreground">
             Bundles
           </Link>
-          <Link to="/about" className="hidden sm:inline-block px-3 py-2 text-sm text-muted-foreground hover:text-foreground">
+          <Link to="/about" className="px-2 sm:px-3 py-2 text-sm text-muted-foreground hover:text-foreground">
             About
           </Link>
           {!loading && user ? (

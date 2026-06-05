@@ -45,17 +45,19 @@ export function useTheme() {
   return ctx;
 }
 
+import { Moon, Sun } from "lucide-react";
+
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
-  const next = theme === "dark" ? "light" : theme === "light" ? "system" : "dark";
-  const label = theme === "system" ? "Auto" : theme === "dark" ? "Dark" : "Light";
+  const { theme, setTheme, resolved } = useTheme();
+  const next = resolved === "dark" ? "light" : "dark";
   return (
     <button
       onClick={() => setTheme(next)}
-      className="rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-accent hover:text-foreground transition"
-      aria-label="Toggle theme"
+      className="inline-flex h-9 w-9 items-center justify-center rounded-full border bg-card text-foreground/80 hover:text-foreground hover:bg-accent transition"
+      aria-label={`Switch to ${next} mode`}
+      title={`Switch to ${next} mode`}
     >
-      {label}
+      {resolved === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
     </button>
   );
 }
