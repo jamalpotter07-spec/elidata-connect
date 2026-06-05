@@ -1,54 +1,27 @@
-// Eli Data Resales — circular monogram inspired by ET Tech reference.
 export function Logo({ className = "" }: { className?: string }) {
   return (
-    <div className={`flex items-center gap-2.5 ${className}`}>
+    <div className={`inline-flex items-center ${className}`}>
       <span className="relative inline-flex h-10 w-10 items-center justify-center">
-        <svg viewBox="0 0 44 44" className="h-10 w-10" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <svg viewBox="0 0 48 48" className="h-10 w-10" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <defs>
-            <linearGradient id="eli-ring" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+            <linearGradient id="eli-shell" x1="7" y1="6" x2="41" y2="42" gradientUnits="userSpaceOnUse">
               <stop offset="0%" stopColor="hsl(var(--brand-navy-2))" />
               <stop offset="100%" stopColor="hsl(var(--brand-orange))" />
             </linearGradient>
-            <linearGradient id="eli-mono" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="hsl(var(--brand-navy-2))" />
-              <stop offset="100%" stopColor="hsl(var(--brand-orange))" />
+            <linearGradient id="eli-core" x1="15" y1="15" x2="34" y2="34" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="hsl(var(--brand-orange))" />
+              <stop offset="100%" stopColor="hsl(var(--brand-navy-2))" />
             </linearGradient>
           </defs>
-          {/* Outer ring */}
-          <circle cx="22" cy="22" r="20" fill="none" stroke="url(#eli-ring)" strokeWidth="1.8" />
-          {/* ED monogram */}
-          <text
-            x="22"
-            y="22"
-            textAnchor="middle"
-            dominantBaseline="central"
-            fontFamily="Inter, system-ui, sans-serif"
-            fontWeight="900"
-            fontSize="15"
-            letterSpacing="-0.5"
-            fill="url(#eli-mono)"
-          >
-            ED
-          </text>
-          {/* Live dot */}
-          <circle cx="36" cy="9" r="2.6" fill="#22c55e" />
-          <circle cx="36" cy="9" r="2.6" fill="#22c55e" className="animate-ping" opacity="0.5" />
+          <rect x="4.5" y="4.5" width="39" height="39" rx="12" fill="none" stroke="url(#eli-shell)" strokeWidth="1.8" />
+          <path d="M15 15.5h17.5" stroke="url(#eli-shell)" strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M15 24h14" stroke="url(#eli-shell)" strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M15 32.5h17.5" stroke="url(#eli-shell)" strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M15 15.5v17" stroke="url(#eli-core)" strokeWidth="2.8" strokeLinecap="round" />
+          <path d="M32.5 15.5v17" stroke="url(#eli-core)" strokeWidth="2.8" strokeLinecap="round" />
+          <circle cx="24" cy="24" r="3.4" fill="hsl(var(--brand-orange))" />
         </svg>
       </span>
-      <div className="leading-tight">
-        <div
-          className="font-extrabold tracking-tight text-[15px] bg-clip-text text-transparent"
-          style={{
-            backgroundImage:
-              "linear-gradient(90deg, hsl(var(--brand-navy-2)), hsl(var(--brand-orange)))",
-          }}
-        >
-          ELI DATA RESALES
-        </div>
-        <div className="text-[9px] uppercase tracking-[0.22em] text-muted-foreground -mt-0.5">
-          Ghana · Reseller
-        </div>
-      </div>
     </div>
   );
 }
