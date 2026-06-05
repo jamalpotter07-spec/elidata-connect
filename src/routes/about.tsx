@@ -1,8 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { NavBar } from "@/components/nav-bar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Mail, Phone, MessageCircle, ShieldCheck, Clock, HeartHandshake, Undo2, RefreshCw, AlertTriangle } from "lucide-react";
+import { Mail, Phone, MessageCircle, ShieldCheck, Clock, HeartHandshake, Undo2, RefreshCw, AlertTriangle, FileText, LockKeyhole, ChevronRight } from "lucide-react";
 
 export const Route = createFileRoute("/about")({
   component: AboutPage,
@@ -28,24 +28,40 @@ function AboutPage() {
   return (
     <>
       <NavBar />
-      <main className="pb-20">
+      <main className="mx-auto w-full max-w-7xl pb-20">
         <section className="border-b">
-          <div className="container mx-auto px-4 py-14 md:py-20 text-center">
-            <span className="inline-flex items-center gap-1.5 rounded-full border bg-card px-3 py-1 text-xs font-medium">
-              <HeartHandshake className="h-3 w-3 text-[hsl(var(--brand-orange))]" />
+          <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 md:grid-cols-[1.2fr_0.8fr] md:items-center md:py-20">
+            <div>
+              <span className="inline-flex items-center gap-1.5 rounded-full border bg-card px-3 py-1 text-xs font-medium">
+                <HeartHandshake className="h-3 w-3 text-brand" />
               Proudly serving Ghana
-            </span>
-            <h1 className="mt-4 text-4xl md:text-5xl font-extrabold tracking-tight">
-              Cheap data, <span className="text-[hsl(var(--brand-orange))]">honest service.</span>
-            </h1>
-            <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-              Eli Data Resales sells MTN, Telecel and AirtelTigo data bundles at reseller prices,
-              delivered to any Ghana number. Every order is tracked live, and every failed order is refundable.
-            </p>
+              </span>
+              <h1 className="mt-4 text-4xl font-extrabold tracking-tight md:text-5xl">
+                Cheap data, <span className="text-brand">honest service.</span>
+              </h1>
+              <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
+                Eli Data Resales sells MTN, Telecel and AirtelTigo data bundles at reseller prices,
+                delivered to any Ghana number. Every order is tracked live, and every failed order is refundable.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Button asChild className="bg-brand text-brand-foreground hover:bg-brand/90">
+                  <Link to="/privacy">Privacy policy</Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link to="/terms">Terms of service</Link>
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-1">
+              <PolicySummary title="Order tracking" body="Every completed checkout gets a unique reference so support can verify status quickly." />
+              <PolicySummary title="Refund handling" body="If a bundle fails to arrive within the stated window, we review and process the case manually." />
+              <PolicySummary title="Privacy first" body="Customer phone numbers and payment-related records are only used to complete orders and provide support." />
+            </div>
           </div>
         </section>
 
-        <section className="container mx-auto px-4 py-12">
+        <section className="mx-auto max-w-6xl px-4 py-12">
           <div className="grid gap-4 sm:grid-cols-3">
             <Feature icon={<ShieldCheck />} title="Safe & secure" body="Encrypted checkout via Paystack. Your number and money are protected." />
             <Feature icon={<Clock />} title="Live tracking" body="Every order has a unique tracker — delivery times depend on the network." />
@@ -53,11 +69,10 @@ function AboutPage() {
           </div>
         </section>
 
-        {/* Refund Policy */}
-        <section id="refunds" className="container mx-auto px-4 py-8 scroll-mt-20">
+        <section id="refunds" className="mx-auto max-w-6xl px-4 py-8 scroll-mt-28">
           <div className="rounded-2xl border bg-card p-6 md:p-10">
             <div className="flex items-center gap-2">
-              <Undo2 className="h-5 w-5 text-[hsl(var(--brand-orange))]" />
+              <Undo2 className="h-5 w-5 text-brand" />
               <h2 className="text-2xl md:text-3xl font-bold">Refund policy</h2>
             </div>
             <p className="mt-3 text-muted-foreground">
@@ -71,7 +86,7 @@ function AboutPage() {
                 body="If your bundle does not arrive within 24 hours, message us on WhatsApp with your order ID. We'll refund 100% to your original payment method."
               />
               <Policy
-                icon={<RefreshCw className="h-4 w-4 text-[hsl(var(--brand-orange))]" />}
+                icon={<RefreshCw className="h-4 w-4 text-brand" />}
                 title="Wrong number / duplicate"
                 body="Sent to the wrong line by mistake? Tell us within 1 hour. If the bundle hasn't been used, we'll cancel and refund."
               />
@@ -94,8 +109,9 @@ function AboutPage() {
           </div>
         </section>
 
-        <section className="container mx-auto px-4 py-8">
-          <div className="rounded-2xl border bg-card p-6 md:p-10">
+        <section className="mx-auto max-w-6xl px-4 py-8">
+          <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+            <div className="rounded-2xl border bg-card p-6 md:p-10">
             <h2 className="text-2xl md:text-3xl font-bold">Why customers pick us</h2>
             <ul className="mt-4 grid gap-3 sm:grid-cols-2 text-sm text-muted-foreground">
               <li>• Lower prices than dialing a USSD code</li>
@@ -105,10 +121,32 @@ function AboutPage() {
               <li>• Friendly support on WhatsApp</li>
               <li>• Clear refund policy on every failed delivery</li>
             </ul>
+            </div>
+
+            <div className="rounded-2xl border bg-card p-6 md:p-8">
+              <h2 className="text-xl font-bold md:text-2xl">Policies & legal</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                For a cleaner and more professional experience, our privacy policy and terms are on separate pages.
+              </p>
+              <div className="mt-6 space-y-3">
+                <LegalLink
+                  to="/privacy"
+                  icon={<LockKeyhole className="h-4 w-4 text-brand" />}
+                  title="Privacy policy"
+                  body="How we use your contact details, payment records, device information and support messages."
+                />
+                <LegalLink
+                  to="/terms"
+                  icon={<FileText className="h-4 w-4 text-brand" />}
+                  title="Terms of service"
+                  body="Rules for using the site, placing orders, refunds, account use, and service limitations."
+                />
+              </div>
+            </div>
           </div>
         </section>
 
-        <section id="contact" className="container mx-auto px-4 py-12">
+        <section id="contact" className="mx-auto max-w-6xl px-4 py-12">
           <h2 className="text-2xl md:text-3xl font-bold">Talk to us</h2>
           <p className="text-muted-foreground mt-1">We reply fast — usually within minutes.</p>
           <div className="mt-6 grid gap-4 md:grid-cols-3">
@@ -144,11 +182,20 @@ function Feature({ icon, title, body }: { icon: React.ReactNode; title: string; 
   return (
     <Card>
       <CardContent className="pt-6">
-        <div className="text-[hsl(var(--brand-orange))]">{icon}</div>
+        <div className="text-brand">{icon}</div>
         <h3 className="mt-3 font-semibold">{title}</h3>
         <p className="mt-1 text-sm text-muted-foreground">{body}</p>
       </CardContent>
     </Card>
+  );
+}
+
+function PolicySummary({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="rounded-2xl border bg-card p-5">
+      <div className="text-sm font-semibold text-foreground">{title}</div>
+      <p className="mt-2 text-sm text-muted-foreground">{body}</p>
+    </div>
   );
 }
 
@@ -163,14 +210,27 @@ function Policy({ icon, title, body }: { icon: React.ReactNode; title: string; b
 
 function ContactCard({ icon, title, value, href, cta }: { icon: React.ReactNode; title: string; value: string; href: string; cta: string }) {
   return (
-    <Card className="hover:border-[hsl(var(--brand-orange))]/40 transition">
+    <Card className="transition hover:border-brand-line/80">
       <CardContent className="pt-6">
         <div className="flex items-center gap-2">{icon}<span className="font-semibold">{title}</span></div>
         <div className="mt-2 text-lg font-mono">{value}</div>
-        <Button asChild className="mt-4 w-full bg-[hsl(var(--brand-navy))] hover:bg-[hsl(var(--brand-navy-2))] text-white">
+        <Button asChild className="mt-4 w-full bg-primary text-primary-foreground hover:bg-primary/90">
           <a href={href} target="_blank" rel="noreferrer">{cta}</a>
         </Button>
       </CardContent>
     </Card>
+  );
+}
+
+function LegalLink({ to, icon, title, body }: { to: "/privacy" | "/terms"; icon: React.ReactNode; title: string; body: string }) {
+  return (
+    <Link to={to} className="flex items-start gap-3 rounded-xl border p-4 transition hover:bg-accent">
+      <span className="mt-0.5">{icon}</span>
+      <div className="min-w-0 flex-1">
+        <div className="font-semibold">{title}</div>
+        <p className="mt-1 text-sm text-muted-foreground">{body}</p>
+      </div>
+      <ChevronRight className="mt-1 h-4 w-4 text-muted-foreground" />
+    </Link>
   );
 }
