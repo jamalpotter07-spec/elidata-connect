@@ -59,12 +59,9 @@ export function NavBar() {
           </Link>
 
           <nav className="hidden min-w-0 flex-1 items-center justify-end gap-1 md:flex">
-            <Link to="/" className="rounded-md px-3 py-2 text-sm text-muted-foreground transition hover:bg-accent hover:text-foreground">
-              Bundles
-            </Link>
-            <Link to="/about" className="rounded-md px-3 py-2 text-sm text-muted-foreground transition hover:bg-accent hover:text-foreground">
-              About
-            </Link>
+            <NavTab to="/" label="Bundles" />
+            <NavTab to="/about" label="About" />
+
             {!loading && user ? (
               <>
                 <Link
