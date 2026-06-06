@@ -161,30 +161,8 @@ export function NavBar() {
           </div>
         </div>
 
-        <div className="relative overflow-hidden border-t border-brand-line/60 py-2">
-          <div className="pointer-events-none absolute inset-y-0 left-0 w-12 bg-linear-to-r from-background to-transparent" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-12 bg-linear-to-l from-background to-transparent" />
-          <div className="flex min-w-max animate-[brand-marquee_18s_linear_infinite] gap-4 pr-4 motion-reduce:animate-none">
-            {[...infoSlides, ...infoSlides].map((slide, index) => {
-              const Icon = slide.icon;
+        <InfoStrip />
 
-              return (
-                <div
-                  key={`${slide.title}-${index}`}
-                  className="flex min-w-[260px] items-center gap-3 rounded-md border border-brand-line/70 bg-brand-soft/60 px-4 py-2"
-                >
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-brand text-brand-foreground">
-                    <Icon className="h-4 w-4" />
-                  </span>
-                  <div className="min-w-0">
-                    <div className="text-sm font-semibold text-foreground">{slide.title}</div>
-                    <div className="truncate text-xs text-muted-foreground">{slide.body}</div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
       </div>
     </header>
   );
