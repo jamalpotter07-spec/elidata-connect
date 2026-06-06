@@ -1,5 +1,6 @@
 import { useAuth } from "@/hooks/use-auth";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { ShieldCheck, User as UserIcon, LogOut, LayoutDashboard, Menu, Shield, RefreshCw, Wallet } from "lucide-react";
@@ -19,6 +20,26 @@ const infoSlides = [
   { icon: RefreshCw, title: "Tracked orders", body: "Every purchase gets live status and cleaner follow-up." },
   { icon: Shield, title: "Refund support", body: "Failed deliveries are reviewed and refunded professionally." },
 ];
+
+function NavTab({ to, label }: { to: "/" | "/about" | "/dashboard"; label: string }) {
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  const active = to === "/" ? path === "/" : path === to || path.startsWith(`${to}/`);
+  return (
+    <Link
+      to={to}
+      className={`relative rounded-md px-3 py-2 text-sm transition ${
+        active ? "text-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground"
+      }`}
+    >
+      {label}
+      <span
+        className={`pointer-events-none absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-gradient-to-r from-[hsl(var(--brand-navy-2))] to-[hsl(var(--brand-orange))] transition-opacity ${
+          active ? "opacity-100" : "opacity-0"
+        }`}
+      />
+    </Link>
+  );
+}
 
 export function NavBar() {
   const { user, isAdmin, loading } = useAuth();
