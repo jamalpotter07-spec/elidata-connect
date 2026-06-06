@@ -167,3 +167,36 @@ export function NavBar() {
     </header>
   );
 }
+
+function InfoStrip() {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setIdx((i) => (i + 1) % infoSlides.length), 4500);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <div className="relative h-12 overflow-hidden border-t border-brand-line/60">
+      {infoSlides.map((slide, i) => {
+        const Icon = slide.icon;
+        const active = i === idx;
+        return (
+          <div
+            key={slide.title}
+            aria-hidden={!active}
+            className={`absolute inset-0 flex items-center gap-3 px-1 transition-all duration-500 ease-out ${
+              active ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-1 opacity-0"
+            }`}
+          >
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-brand text-brand-foreground">
+              <Icon className="h-3.5 w-3.5" />
+            </span>
+            <div className="min-w-0">
+              <div className="truncate text-sm font-semibold text-foreground">{slide.title}</div>
+              <div className="truncate text-xs text-muted-foreground">{slide.body}</div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
