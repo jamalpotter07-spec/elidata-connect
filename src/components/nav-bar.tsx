@@ -1,5 +1,6 @@
 import { useAuth } from "@/hooks/use-auth";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { ShieldCheck, User as UserIcon, LogOut, LayoutDashboard, Menu, Shield, RefreshCw, Wallet } from "lucide-react";
@@ -20,6 +21,26 @@ const infoSlides = [
   { icon: Shield, title: "Refund support", body: "Failed deliveries are reviewed and refunded professionally." },
 ];
 
+function NavTab({ to, label }: { to: "/" | "/about" | "/dashboard"; label: string }) {
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  const active = to === "/" ? path === "/" : path === to || path.startsWith(`${to}/`);
+  return (
+    <Link
+      to={to}
+      className={`relative rounded-md px-3 py-2 text-sm transition ${
+        active ? "text-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground"
+      }`}
+    >
+      {label}
+      <span
+        className={`pointer-events-none absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-gradient-to-r from-[hsl(var(--brand-navy-2))] to-[hsl(var(--brand-orange))] transition-opacity ${
+          active ? "opacity-100" : "opacity-0"
+        }`}
+      />
+    </Link>
+  );
+}
+
 export function NavBar() {
   const { user, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
@@ -38,12 +59,9 @@ export function NavBar() {
           </Link>
 
           <nav className="hidden min-w-0 flex-1 items-center justify-end gap-1 md:flex">
-            <Link to="/" className="rounded-md px-3 py-2 text-sm text-muted-foreground transition hover:bg-accent hover:text-foreground">
-              Bundles
-            </Link>
-            <Link to="/about" className="rounded-md px-3 py-2 text-sm text-muted-foreground transition hover:bg-accent hover:text-foreground">
-              About
-            </Link>
+            <NavTab to="/" label="Bundles" />
+            <NavTab to="/about" label="About" />
+
             {!loading && user ? (
               <>
                 <Link
@@ -143,31 +161,42 @@ export function NavBar() {
           </div>
         </div>
 
-        <div className="relative overflow-hidden border-t border-brand-line/60 py-2">
-          <div className="pointer-events-none absolute inset-y-0 left-0 w-12 bg-linear-to-r from-background to-transparent" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-12 bg-linear-to-l from-background to-transparent" />
-          <div className="flex min-w-max animate-[brand-marquee_18s_linear_infinite] gap-4 pr-4 motion-reduce:animate-none">
-            {[...infoSlides, ...infoSlides].map((slide, index) => {
-              const Icon = slide.icon;
+        <InfoStrip />
 
-              return (
-                <div
-                  key={`${slide.title}-${index}`}
-                  className="flex min-w-[260px] items-center gap-3 rounded-md border border-brand-line/70 bg-brand-soft/60 px-4 py-2"
-                >
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-brand text-brand-foreground">
-                    <Icon className="h-4 w-4" />
-                  </span>
-                  <div className="min-w-0">
-                    <div className="text-sm font-semibold text-foreground">{slide.title}</div>
-                    <div className="truncate text-xs text-muted-foreground">{slide.body}</div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
       </div>
     </header>
+  );
+}
+
+function InfoStrip() {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setIdx((i) => (i + 1) % infoSlides.length), 4500);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <div className="relative h-12 overflow-hidden border-t border-brand-line/60">
+      {infoSlides.map((slide, i) => {
+        const Icon = slide.icon;
+        const active = i === idx;
+        return (
+          <div
+            key={slide.title}
+            aria-hidden={!active}
+            className={`absolute inset-0 flex items-center gap-3 px-1 transition-all duration-500 ease-out ${
+              active ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-1 opacity-0"
+            }`}
+          >
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-brand text-brand-foreground">
+              <Icon className="h-3.5 w-3.5" />
+            </span>
+            <div className="min-w-0">
+              <div className="truncate text-sm font-semibold text-foreground">{slide.title}</div>
+              <div className="truncate text-xs text-muted-foreground">{slide.body}</div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }
