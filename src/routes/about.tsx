@@ -28,7 +28,7 @@ function AboutPage() {
   return (
     <>
       <NavBar />
-      <main className="mx-auto w-full max-w-7xl overflow-x-hidden pb-20">
+      <main className="mx-auto w-full max-w-7xl overflow-x-hidden pb-20 min-w-0">
         <section className="border-b">
           <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 md:grid-cols-[1.2fr_0.8fr] md:items-center md:py-20">
             <div>
