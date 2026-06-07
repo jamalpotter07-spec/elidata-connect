@@ -52,13 +52,13 @@ export function NavBar() {
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-      <div className="container mx-auto px-4">
+      <div className="mx-auto w-full max-w-7xl px-4">
         <div className="flex min-h-16 items-center justify-between gap-3 py-2">
           <Link to="/" className="shrink-0 flex items-center">
             <Logo />
           </Link>
 
-          <nav className="hidden min-w-0 flex-1 items-center justify-end gap-1 md:flex">
+          <nav className="hidden min-w-0 flex-1 items-center justify-end gap-1 lg:flex">
             <NavTab to="/" label="Bundles" />
             <NavTab to="/about" label="About" />
 
@@ -112,7 +112,7 @@ export function NavBar() {
             <ThemeToggle />
           </nav>
 
-          <div className="flex items-center gap-2 md:hidden">
+          <div className="flex items-center gap-2 lg:hidden">
             <ThemeToggle />
             <Sheet>
               <SheetTrigger asChild>
@@ -177,7 +177,7 @@ function InfoStrip() {
   const slide = infoSlides[idx];
   const Icon = slide.icon;
   return (
-    <div className="flex items-center gap-3 border-t border-brand-line/60 px-1 py-2">
+    <div className="flex min-h-12 items-center gap-3 overflow-hidden border-t border-brand-line/60 px-1 py-2">
       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-brand text-brand-foreground">
         <Icon className="h-3.5 w-3.5" />
       </span>
@@ -186,7 +186,7 @@ function InfoStrip() {
         className="min-w-0 flex-1 animate-in fade-in slide-in-from-top-1 duration-500"
       >
         <div className="truncate text-sm font-semibold text-foreground">{slide.title}</div>
-        <div className="truncate text-xs text-muted-foreground">{slide.body}</div>
+        <div className="max-w-full truncate text-xs text-muted-foreground">{slide.body}</div>
       </div>
     </div>
   );
