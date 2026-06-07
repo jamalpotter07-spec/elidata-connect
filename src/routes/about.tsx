@@ -28,18 +28,18 @@ function AboutPage() {
   return (
     <>
       <NavBar />
-      <main className="mx-auto w-full max-w-7xl overflow-x-hidden pb-20 min-w-0">
+      <main className="mx-auto w-full max-w-7xl min-w-0 overflow-x-clip pb-20">
         <section className="border-b">
-          <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 md:grid-cols-[1.2fr_0.8fr] md:items-center md:py-20">
-            <div>
+          <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)] lg:items-center lg:gap-12 lg:py-18 xl:py-20">
+            <div className="min-w-0 max-w-3xl">
               <span className="inline-flex items-center gap-1.5 rounded-full border bg-card px-3 py-1 text-xs font-medium">
                 <HeartHandshake className="h-3 w-3 text-brand" />
-              Proudly serving Ghana
+                Proudly serving Ghana
               </span>
-              <h1 className="mt-4 text-4xl font-extrabold tracking-tight md:text-5xl">
+              <h1 className="mt-4 max-w-[12ch] text-4xl font-extrabold tracking-tight text-balance md:text-5xl">
                 Cheap data, <span className="text-brand">honest service.</span>
               </h1>
-              <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
+              <p className="mt-4 max-w-2xl text-lg leading-8 text-muted-foreground">
                 Eli Data Resales sells MTN, Telecel and AirtelTigo data bundles at reseller prices,
                 delivered to any Ghana number. Every order is tracked live, and every failed order is refundable.
               </p>
@@ -53,7 +53,7 @@ function AboutPage() {
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-1">
+            <div className="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-1">
               <PolicySummary title="Order tracking" body="Every completed checkout gets a unique reference so support can verify status quickly." />
               <PolicySummary title="Refund handling" body="If a bundle fails to arrive within the stated window, we review and process the case manually." />
               <PolicySummary title="Privacy first" body="Customer phone numbers and payment-related records are only used to complete orders and provide support." />
@@ -62,7 +62,7 @@ function AboutPage() {
         </section>
 
         <section className="mx-auto max-w-6xl px-4 py-12">
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <Feature icon={<ShieldCheck />} title="Safe & secure" body="Encrypted checkout via Paystack. Your number and money are protected." />
             <Feature icon={<Clock />} title="Live tracking" body="Every order has a unique tracker — delivery times depend on the network." />
             <Feature icon={<Undo2 />} title="Refund guarantee" body="If delivery fails, we refund. No drama, no chasing." />
@@ -79,7 +79,7 @@ function AboutPage() {
               We want you to feel safe buying from us. Here's exactly when and how you get your money back.
             </p>
 
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="mt-6 grid gap-4 xl:grid-cols-2">
               <Policy
                 icon={<AlertTriangle className="h-4 w-4 text-destructive" />}
                 title="Failed delivery"
@@ -110,20 +110,20 @@ function AboutPage() {
         </section>
 
         <section className="mx-auto max-w-6xl px-4 py-8">
-          <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
-            <div className="rounded-2xl border bg-card p-6 md:p-10">
-            <h2 className="text-2xl md:text-3xl font-bold">Why customers pick us</h2>
-            <ul className="mt-4 grid gap-3 sm:grid-cols-2 text-sm text-muted-foreground">
-              <li>• Lower prices than dialing a USSD code</li>
-              <li>• No SIM swap, no app install required</li>
-              <li>• Works for guests — no sign up needed</li>
-              <li>• Track every order with a unique link</li>
-              <li>• Friendly support on WhatsApp</li>
-              <li>• Clear refund policy on every failed delivery</li>
-            </ul>
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)]">
+            <div className="min-w-0 rounded-2xl border bg-card p-6 md:p-10">
+              <h2 className="text-2xl font-bold md:text-3xl">Why customers pick us</h2>
+              <ul className="mt-4 grid gap-3 text-sm text-muted-foreground md:grid-cols-2">
+                <li className="min-w-0">• Lower prices than dialing a USSD code</li>
+                <li className="min-w-0">• No SIM swap, no app install required</li>
+                <li className="min-w-0">• Works for guests — no sign up needed</li>
+                <li className="min-w-0">• Track every order with a unique link</li>
+                <li className="min-w-0">• Friendly support on WhatsApp</li>
+                <li className="min-w-0">• Clear refund policy on every failed delivery</li>
+              </ul>
             </div>
 
-            <div className="rounded-2xl border bg-card p-6 md:p-8">
+            <div className="min-w-0 rounded-2xl border bg-card p-6 md:p-8">
               <h2 className="text-xl font-bold md:text-2xl">Policies & legal</h2>
               <p className="mt-2 text-sm text-muted-foreground">
                 For a cleaner and more professional experience, our privacy policy and terms are on separate pages.
@@ -149,7 +149,7 @@ function AboutPage() {
         <section id="contact" className="mx-auto max-w-6xl px-4 py-12">
           <h2 className="text-2xl md:text-3xl font-bold">Talk to us</h2>
           <p className="text-muted-foreground mt-1">We reply fast — usually within minutes.</p>
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <ContactCard
               icon={<MessageCircle className="h-5 w-5 text-green-500" />}
               title="WhatsApp"
@@ -192,7 +192,7 @@ function Feature({ icon, title, body }: { icon: React.ReactNode; title: string; 
 
 function PolicySummary({ title, body }: { title: string; body: string }) {
   return (
-    <div className="rounded-2xl border bg-card p-5">
+    <div className="min-w-0 overflow-hidden rounded-2xl border bg-card p-5">
       <div className="text-sm font-semibold text-foreground">{title}</div>
       <p className="mt-2 text-sm text-muted-foreground">{body}</p>
     </div>
@@ -210,10 +210,10 @@ function Policy({ icon, title, body }: { icon: React.ReactNode; title: string; b
 
 function ContactCard({ icon, title, value, href, cta }: { icon: React.ReactNode; title: string; value: string; href: string; cta: string }) {
   return (
-    <Card className="transition hover:border-brand-line/80">
+    <Card className="min-w-0 overflow-hidden transition hover:border-brand-line/80">
       <CardContent className="pt-6">
         <div className="flex items-center gap-2">{icon}<span className="font-semibold">{title}</span></div>
-        <div className="mt-2 text-lg font-mono">{value}</div>
+        <div className="mt-2 overflow-hidden text-ellipsis text-lg font-mono">{value}</div>
         <Button asChild className="mt-4 w-full bg-primary text-primary-foreground hover:bg-primary/90">
           <a href={href} target="_blank" rel="noreferrer">{cta}</a>
         </Button>
