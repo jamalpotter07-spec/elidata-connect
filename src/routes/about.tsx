@@ -201,9 +201,9 @@ function PolicySummary({ title, body }: { title: string; body: string }) {
 
 function Policy({ icon, title, body }: { icon: React.ReactNode; title: string; body: string }) {
   return (
-    <div className="rounded-lg border p-4">
-      <div className="flex items-center gap-2 font-semibold">{icon}{title}</div>
-      <p className="mt-2 text-sm text-muted-foreground">{body}</p>
+    <div className="min-w-0 overflow-hidden rounded-lg border p-4">
+      <div className="flex items-center gap-2 font-semibold">{icon}<span className="min-w-0 break-words">{title}</span></div>
+      <p className="mt-2 text-sm text-muted-foreground break-words">{body}</p>
     </div>
   );
 }
