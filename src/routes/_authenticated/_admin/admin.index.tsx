@@ -93,7 +93,7 @@ function AdminHome() {
                   <TableRow key={b.id} className={low ? "bg-destructive/5" : undefined}>
                     <TableCell><NetworkBadge network={b.network} /></TableCell>
                     <TableCell className="font-medium">{b.name}</TableCell>
-                    <TableCell>{(b.data_mb / 1024).toFixed(1)} GB</TableCell>
+                    <TableCell>{b.name}</TableCell>
                     <TableCell className="text-muted-foreground">{cost > 0 ? `GHS ${cost.toFixed(2)}` : "—"}</TableCell>
                     <TableCell>GHS {price.toFixed(2)}</TableCell>
                     <TableCell className={profit > 0 ? "text-green-600" : "text-destructive"}>GHS {profit.toFixed(2)}</TableCell>

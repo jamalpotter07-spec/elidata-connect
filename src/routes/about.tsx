@@ -69,17 +69,17 @@ function AboutPage() {
           </div>
         </section>
 
-        <section id="refunds" className="mx-auto max-w-6xl px-4 py-8 scroll-mt-28">
-          <div className="rounded-2xl border bg-card p-6 md:p-10">
-            <div className="flex items-center gap-2">
-              <Undo2 className="h-5 w-5 text-brand" />
-              <h2 className="text-2xl md:text-3xl font-bold">Refund policy</h2>
+        <section id="refunds" className="mx-auto w-full max-w-6xl min-w-0 px-4 py-8 scroll-mt-28">
+          <div className="min-w-0 rounded-2xl border bg-card p-6 md:p-10">
+            <div className="flex flex-wrap items-center gap-2">
+              <Undo2 className="h-5 w-5 shrink-0 text-brand" />
+              <h2 className="min-w-0 text-2xl md:text-3xl font-bold">Refund policy</h2>
             </div>
             <p className="mt-3 text-muted-foreground">
               We want you to feel safe buying from us. Here's exactly when and how you get your money back.
             </p>
 
-            <div className="mt-6 grid gap-4 xl:grid-cols-2">
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
               <Policy
                 icon={<AlertTriangle className="h-4 w-4 text-destructive" />}
                 title="Failed delivery"
@@ -102,9 +102,9 @@ function AboutPage() {
               />
             </div>
 
-            <div className="mt-6 rounded-lg border bg-muted/40 p-4 text-sm">
+            <div className="mt-6 rounded-lg border bg-muted/40 p-4 text-sm break-words">
               <strong>How to request:</strong> WhatsApp <a className="underline" href={`https://wa.me/${WA_INTL}`}>{PHONE}</a> with your order ID and a short note,
-              or email <a className="underline" href={`mailto:${EMAIL}`}>{EMAIL}</a>. Our team reviews every request manually.
+              or email <a className="underline break-all" href={`mailto:${EMAIL}`}>{EMAIL}</a>. Our team reviews every request manually.
             </div>
           </div>
         </section>
@@ -201,9 +201,9 @@ function PolicySummary({ title, body }: { title: string; body: string }) {
 
 function Policy({ icon, title, body }: { icon: React.ReactNode; title: string; body: string }) {
   return (
-    <div className="rounded-lg border p-4">
-      <div className="flex items-center gap-2 font-semibold">{icon}{title}</div>
-      <p className="mt-2 text-sm text-muted-foreground">{body}</p>
+    <div className="min-w-0 overflow-hidden rounded-lg border p-4">
+      <div className="flex items-center gap-2 font-semibold">{icon}<span className="min-w-0 break-words">{title}</span></div>
+      <p className="mt-2 text-sm text-muted-foreground break-words">{body}</p>
     </div>
   );
 }
