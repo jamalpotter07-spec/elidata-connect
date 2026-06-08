@@ -193,7 +193,7 @@ function AdminBundles() {
                   <TableRow key={b.id}>
                     <TableCell><NetworkBadge network={b.network} /></TableCell>
                     <TableCell>{b.name}</TableCell>
-                    <TableCell>{(b.data_mb / 1024).toFixed(1)} GB</TableCell>
+                    <TableCell>{b.name}</TableCell>
                     <TableCell className="text-muted-foreground">{cost > 0 ? `GHS ${cost.toFixed(2)}` : "—"}</TableCell>
                     <TableCell className="font-medium">GHS {price.toFixed(2)}</TableCell>
                     <TableCell className={profit >= 0 ? "text-green-600" : "text-destructive"}>
