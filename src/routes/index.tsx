@@ -192,7 +192,6 @@ function HomePage() {
                                 {(b.data_mb / 1024).toFixed(b.data_mb % 1024 ? 1 : 0)}
                                 <span className="text-lg font-semibold text-muted-foreground ml-1">GB</span>
                               </div>
-                              <div className="text-sm text-muted-foreground">{b.name}</div>
                             </div>
                             <div className="mt-4 flex items-center justify-between">
                               <div>
