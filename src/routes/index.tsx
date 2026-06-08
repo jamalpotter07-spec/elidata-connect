@@ -138,15 +138,23 @@ function HomePage() {
             </div>
             <Tabs defaultValue="MTN" className="w-full">
               <TabsList className="grid w-full max-w-md grid-cols-3 h-12 p-1">
-                {networks.map((n) => (
-                  <TabsTrigger
-                    key={n}
-                    value={n}
-                    className="data-[state=active]:bg-background data-[state=active]:shadow transition-all duration-300"
-                  >
-                    {n}
-                  </TabsTrigger>
-                ))}
+                {networks.map((n) => {
+                  const activeCls =
+                    n === "MTN"
+                      ? "data-[state=active]:bg-[#FFCC00] data-[state=active]:text-black"
+                      : n === "Telecel"
+                        ? "data-[state=active]:bg-[#E30613] data-[state=active]:text-white"
+                        : "data-[state=active]:bg-[#00A4E4] data-[state=active]:text-white";
+                  return (
+                    <TabsTrigger
+                      key={n}
+                      value={n}
+                      className={`font-semibold transition-all duration-300 data-[state=active]:shadow ${activeCls}`}
+                    >
+                      {n}
+                    </TabsTrigger>
+                  );
+                })}
               </TabsList>
               {networks.map((n) => (
                 <TabsContent
@@ -184,7 +192,6 @@ function HomePage() {
                                 {(b.data_mb / 1024).toFixed(b.data_mb % 1024 ? 1 : 0)}
                                 <span className="text-lg font-semibold text-muted-foreground ml-1">GB</span>
                               </div>
-                              <div className="text-sm text-muted-foreground">{b.name}</div>
                             </div>
                             <div className="mt-4 flex items-center justify-between">
                               <div>

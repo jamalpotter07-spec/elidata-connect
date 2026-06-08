@@ -46,7 +46,7 @@ function LoginPage() {
       <Card className="w-full">
         <CardHeader>
           <CardTitle>Log in</CardTitle>
-          <CardDescription>Welcome back to DataPlug GH</CardDescription>
+          <CardDescription>Welcome back to Eli Data Resales</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Button variant="outline" className="w-full" onClick={google}>Continue with Google</Button>

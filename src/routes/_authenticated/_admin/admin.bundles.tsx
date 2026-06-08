@@ -173,32 +173,54 @@ function AdminBundles() {
               <TableHead>Data</TableHead>
               <TableHead>API cost</TableHead>
               <TableHead>Sell price</TableHead>
+              <TableHead>Profit / unit</TableHead>
               <TableHead>Margin</TableHead>
               <TableHead>Active</TableHead>
               <TableHead></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {(data?.bundles ?? []).map((b: any) => {
-              const cost = Number(b.cost_price_ghs ?? 0);
-              const price = Number(b.price_ghs);
-              const margin = cost > 0 ? (((price - cost) / price) * 100).toFixed(0) + "%" : "—";
+            {(() => {
+              const rows = (data?.bundles ?? []) as any[];
+              let totalProfit = 0;
+              const rendered = rows.map((b: any) => {
+                const cost = Number(b.cost_price_ghs ?? 0);
+                const price = Number(b.price_ghs);
+                const profit = cost > 0 ? price - cost : 0;
+                if (cost > 0) totalProfit += profit;
+                const margin = cost > 0 ? ((profit / cost) * 100).toFixed(1) + "%" : "—";
+                return (
+                  <TableRow key={b.id}>
+                    <TableCell><NetworkBadge network={b.network} /></TableCell>
+                    <TableCell>{b.name}</TableCell>
+                    <TableCell>{(b.data_mb / 1024).toFixed(1)} GB</TableCell>
+                    <TableCell className="text-muted-foreground">{cost > 0 ? `GHS ${cost.toFixed(2)}` : "—"}</TableCell>
+                    <TableCell className="font-medium">GHS {price.toFixed(2)}</TableCell>
+                    <TableCell className={profit >= 0 ? "text-green-600" : "text-destructive"}>
+                      {cost > 0 ? `GHS ${profit.toFixed(2)}` : "—"}
+                    </TableCell>
+                    <TableCell>{margin}</TableCell>
+                    <TableCell>{b.active ? "Yes" : "No"}</TableCell>
+                    <TableCell className="space-x-2 text-right">
+                      <Button variant="outline" size="sm" onClick={() => { setEditing(b); setOpen(true); }}>Edit</Button>
+                      <Button variant="destructive" size="sm" onClick={() => remove(b.id)}>Delete</Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              });
               return (
-                <TableRow key={b.id}>
-                  <TableCell><NetworkBadge network={b.network} /></TableCell>
-                  <TableCell>{b.name}</TableCell>
-                  <TableCell>{(b.data_mb / 1024).toFixed(1)} GB</TableCell>
-                  <TableCell className="text-muted-foreground">{cost > 0 ? `GHS ${cost.toFixed(2)}` : "—"}</TableCell>
-                  <TableCell className="font-medium">GHS {price.toFixed(2)}</TableCell>
-                  <TableCell>{margin}</TableCell>
-                  <TableCell>{b.active ? "Yes" : "No"}</TableCell>
-                  <TableCell className="space-x-2 text-right">
-                    <Button variant="outline" size="sm" onClick={() => { setEditing(b); setOpen(true); }}>Edit</Button>
-                    <Button variant="destructive" size="sm" onClick={() => remove(b.id)}>Delete</Button>
-                  </TableCell>
-                </TableRow>
+                <>
+                  {rendered}
+                  {rows.length > 0 && (
+                    <TableRow className="bg-muted/40 font-semibold">
+                      <TableCell colSpan={5} className="text-right">Total profit per 1 sale of every bundle</TableCell>
+                      <TableCell className="text-green-600">GHS {totalProfit.toFixed(2)}</TableCell>
+                      <TableCell colSpan={3} />
+                    </TableRow>
+                  )}
+                </>
               );
-            })}
+            })()}
           </TableBody>
         </Table>
       </div>
