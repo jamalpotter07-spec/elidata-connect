@@ -153,25 +153,47 @@ export function NavBar() {
   );
 }
 
+function MobileLink({
+  to,
+  label,
+  exact,
+  brand,
+}: {
+  to: "/" | "/about" | "/dashboard" | "/orders" | "/admin/bundles" | "/login" | "/signup";
+  label: string;
+  exact?: boolean;
+  brand?: boolean;
+}) {
+  const base = "rounded-md px-3 py-3 text-sm font-medium transition hover:bg-accent";
+  const brandCls = brand ? "text-brand" : "";
+  return (
+    <Link
+      to={to}
+      activeOptions={{ exact: !!exact }}
+      activeProps={{ className: `${base} ${brandCls} bg-accent text-foreground` }}
+      inactiveProps={{ className: `${base} ${brandCls}` }}
+    >
+      {label}
+    </Link>
+  );
+}
+
 function InfoStrip() {
   const [idx, setIdx] = useState(0);
   useEffect(() => {
-    const id = setInterval(() => setIdx((i) => (i + 1) % infoSlides.length), 4500);
+    const id = setInterval(() => setIdx((i) => (i + 1) % infoSlides.length), 5000);
     return () => clearInterval(id);
   }, []);
   const slide = infoSlides[idx];
   const Icon = slide.icon;
   return (
-    <div className="flex min-h-12 items-center gap-3 overflow-hidden border-t border-brand-line/60 px-1 py-2">
+    <div className="flex min-h-12 items-center gap-3 border-t border-brand-line/60 px-1 py-2">
       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-brand text-brand-foreground">
         <Icon className="h-3.5 w-3.5" />
       </span>
-      <div
-        key={slide.title}
-        className="min-w-0 flex-1 animate-in fade-in slide-in-from-top-1 duration-500"
-      >
+      <div key={slide.title} className="min-w-0 flex-1">
         <div className="truncate text-sm font-semibold text-foreground">{slide.title}</div>
-        <div className="max-w-full truncate text-xs text-muted-foreground">{slide.body}</div>
+        <div className="truncate text-xs text-muted-foreground">{slide.body}</div>
       </div>
     </div>
   );
