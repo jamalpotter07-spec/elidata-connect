@@ -104,12 +104,27 @@ function AdminBundles() {
                 </Select>
               </div>
               <div className="space-y-1">
-                <Label>Data (MB)</Label>
-                <Input type="number" value={editing.data_mb} onChange={(e) => setEditing({ ...editing, data_mb: Number(e.target.value) })} />
+                <Label>Data (GB)</Label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  value={+(editing.data_mb / 1024).toFixed(3)}
+                  onChange={(e) => setEditing({ ...editing, data_mb: Math.round(Number(e.target.value) * 1024) })}
+                />
                 <p className="text-xs text-muted-foreground">
-                  Displays as <strong>{(editing.data_mb / 1024).toFixed(editing.data_mb % 1024 ? 1 : 0)} GB</strong> on the bundles page
-                  {" "}· 1 GB = 1024 MB
+                  = <strong>{editing.data_mb} MB</strong> · shows as{" "}
+                  <strong>{(editing.data_mb / 1024).toFixed(editing.data_mb % 1024 ? 1 : 0)} GB</strong> on the bundles card
                 </p>
+              </div>
+              <div className="space-y-1">
+                <Label>Data (MB) — exact</Label>
+                <Input
+                  type="number"
+                  value={editing.data_mb}
+                  onChange={(e) => setEditing({ ...editing, data_mb: Number(e.target.value) })}
+                />
+                <p className="text-xs text-muted-foreground">1 GB = 1024 MB. Edit either field.</p>
               </div>
               <div className="space-y-1">
                 <Label>Sell price (GHS)</Label>
