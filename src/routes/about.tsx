@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { NavBar } from "@/components/nav-bar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,9 +26,19 @@ const PHONE = "0500843914";
 const WA_INTL = "233500843914";
 
 function AboutPage() {
+  // Force light theme on this page (like Google's policy pages) — restore on unmount.
+  useEffect(() => {
+    const root = document.documentElement;
+    const wasDark = root.classList.contains("dark");
+    root.classList.remove("dark");
+    return () => {
+      if (wasDark) root.classList.add("dark");
+    };
+  }, []);
   return (
-    <>
+    <div className="bg-white text-zinc-900 [color-scheme:light]">
       <NavBar />
+
       <main className="mx-auto w-full max-w-7xl min-w-0 overflow-hidden pb-20">
         <section className="border-b">
           <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)] lg:items-center lg:gap-12 lg:py-18 xl:py-20">
@@ -174,7 +185,8 @@ function AboutPage() {
           </div>
         </section>
       </main>
-    </>
+    </div>
+
   );
 }
 
