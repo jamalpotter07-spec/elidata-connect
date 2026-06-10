@@ -1,88 +1,40 @@
-## Goal
+## What's already in place
 
-Ship a fully working site **without Paystack live keys** so you can submit it for Paystack approval. Payments will be stubbed with a clearly-marked "Test checkout" flow that simulates success and triggers the same downstream logic. When Paystack approves your account, we swap in the real init + webhook in one focused turn.
+All code-side features from your history are present in this remix:
 
-## What gets built now
+- **Public routes**: `/`, `/about`, `/privacy`, `/terms`, `/login`, `/signup`, `/reset-password`, `/track/$orderId`
+- **User routes**: `/dashboard`, `/orders`, `/orders/$orderId`
+- **Admin pages** under `/_authenticated/_admin/`: dashboard (`admin.index`), bundles CRUD (`admin.bundles`), orders list (`admin.orders`), order detail (`admin.orders_.$orderId`), users + role management (`admin.users`)
+- **Server functions**: `bundles`, `orders`, `checkout`, `admin`, plus `reseller.server` (Mobigh) and `sms.server` (Arkesel)
+- **Secrets**: `ARKESEL_API_KEY`, `PAYSTACK_SECRET_KEY`, `MOBIGH_API_KEY` were just added
+- **Database**: `profiles`, `bundles`, `orders`, `payments`, `user_roles` tables with RLS + `has_role` function + signup trigger
 
-### Database (already done ✓)
-- `profiles`, `user_roles`, `bundles`, `orders`, `payments` tables
-- RLS policies, `has_role` security-definer function
-- Auto-create profile + 'user' role trigger on signup
-- 10 seeded sample bundles (MTN, Telecel, AT)
+## What's missing in the remix
 
-### Authentication
-- Email/password + Google sign-in (Lovable Cloud managed)
-- Login, signup, reset-password pages
-- Root-level `onAuthStateChange` for cache invalidation
-- Auth context wired into the router
+The remix copied schema but not data — `bundles`, `orders`, and `user_roles` are all empty. That means:
 
-### Routes
-- `/` — homepage with hero + bundle catalog (network tabs: MTN/Telecel/AT)
-- `/login`, `/signup`, `/reset-password`
-- `/_authenticated/dashboard` — recent orders + quick reorder
-- `/_authenticated/orders` — full order history
-- `/_authenticated/orders/$orderId` — order detail
-- `/_authenticated/_admin` — admin layout (role-gated)
-- `/admin` — revenue + recent orders dashboard
-- `/admin/orders` — all orders, filterable
-- `/admin/bundles` — CRUD bundles, toggle active
-- `/admin/users` — view users, grant/revoke admin role
+1. Homepage shows no bundles to buy
+2. No admin user exists, so `/admin/*` is inaccessible to anyone
 
-### Server functions
-- `bundles.functions.ts` — list active bundles
-- `orders.functions.ts` — create order, list my orders, get order
-- `admin.functions.ts` — all orders, stats, bundle CRUD, role management
-- `checkout.functions.ts` — **stub** that marks order paid and fulfills (mock). Clearly labeled `TODO: replace with Paystack init` so swap-in is one edit.
-- `reseller.ts` — adapter for Datamart GH. Currently returns simulated success/failure after a delay; structured so the real Datamart API call replaces only the inside of one function.
+## Plan
 
-### Checkout flow (interim)
-1. User picks bundle → enters recipient phone → confirms.
-2. Order created with `status: pending`.
-3. "Test checkout" button calls stub fn → marks order `paid`, triggers mock reseller fulfillment → order becomes `delivered`.
-4. A visible banner on the checkout page says **"Payments in test mode — real card payments unlock once Paystack approves the account."**
+### 1. Re-seed the bundle catalog
+Run a migration to insert the 10 sample bundles (MTN, Telecel, AT) with the same names/prices/cost prices used in the original project, so the catalog and admin profit calculations work immediately.
 
-### Admin bootstrap
-After you sign up, you'll grant yourself the `admin` role via a one-line SQL insert (I'll provide the exact command in the chat once your user exists).
+### 2. Admin bootstrap instructions
+After you sign up your own account on the live preview, I'll give you a one-line SQL `insert into user_roles (user_id, role) values ('<your-uid>', 'admin')` to grant yourself admin access. (Can't do this before the account exists.)
 
-### Design
-- Clean white/slate base
-- Brand accents: MTN yellow `#FFCC00`, Telecel red `#E30613`, AT blue `#00A4E4`
-- Mobile-first card grid, responsive nav
-- Status badges color-coded
+### 3. Verify Paystack wiring
+Your original plan had Paystack as a stub. Now that `PAYSTACK_SECRET_KEY` is set, confirm whether you want me to:
+   - **(a)** Leave the test-checkout stub in place until Paystack approves your account, or
+   - **(b)** Swap the stub for real Paystack `/transaction/initialize` + add the `/api/public/paystack/webhook` route with HMAC verification right now
 
-## What's deferred to "after Paystack approval"
+### 4. Confirm reseller + SMS go-live
+Both `MOBIGH_API_KEY` and `ARKESEL_API_KEY` are set, so `reseller.server.ts` and `sms.server.ts` will start hitting real APIs the moment an order is paid. No code change needed — just flagging it so you're aware test orders will consume real credits.
 
-A single follow-up turn will:
-1. Add `PAYSTACK_SECRET_KEY` secret
-2. Replace the `checkout` stub with real Paystack `/transaction/initialize` call
-3. Add `/api/public/paystack/webhook` route with HMAC signature verification
-4. Remove the test-mode banner
+## Questions before I implement
 
-That's it — everything else stays untouched.
+- Confirm Paystack option **(a)** vs **(b)** above.
+- Should I also seed any orders/users for testing, or leave those empty?
 
-## Files to create
-
-**Server**
-- `src/lib/bundles.functions.ts`
-- `src/lib/orders.functions.ts`
-- `src/lib/admin.functions.ts`
-- `src/lib/checkout.functions.ts` (stub)
-- `src/lib/reseller.ts` (Datamart adapter, currently mocked)
-
-**Routes**
-- `src/routes/_authenticated.tsx`, `_authenticated/dashboard.tsx`, `_authenticated/orders.tsx`, `_authenticated/orders.$orderId.tsx`
-- `src/routes/_authenticated/_admin.tsx`, `_admin/index.tsx`, `_admin/orders.tsx`, `_admin/bundles.tsx`, `_admin/users.tsx`
-- `src/routes/login.tsx`, `signup.tsx`, `reset-password.tsx`
-- Rewrite `src/routes/index.tsx`, `src/routes/__root.tsx`
-
-**Components**
-- Nav bar, bundle card, network tabs, checkout dialog, order status badge, admin tables
-
-**Modified**
-- `src/router.tsx` — add auth context
-- `src/start.ts` — add `attachSupabaseAuth` middleware
-- `src/styles.css` — brand color tokens
-
-## Confirm to proceed
-
-Reply "go" and I'll build everything in the next turn. The site will be fully usable end-to-end with the test checkout, ready to share with Paystack as proof.
+Reply with your choices and I'll switch to build mode.
