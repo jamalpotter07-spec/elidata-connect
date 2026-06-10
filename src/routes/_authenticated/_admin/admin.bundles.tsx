@@ -6,6 +6,8 @@ import {
   adminUpsertBundle,
   adminDeleteBundle,
   adminBulkAdjustPrices,
+  adminSyncMobighPrices,
+  adminMobighBalance,
 } from "@/lib/admin.functions";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -40,11 +42,30 @@ function AdminBundles() {
   const upsert = useServerFn(adminUpsertBundle);
   const del = useServerFn(adminDeleteBundle);
   const bulkAdjust = useServerFn(adminBulkAdjustPrices);
+  const syncMobigh = useServerFn(adminSyncMobighPrices);
+  const fetchBalance = useServerFn(adminMobighBalance);
   const { data } = useQuery({ queryKey: ["admin-bundles"], queryFn: () => list() });
+  const balanceQ = useQuery({ queryKey: ["mobigh-balance"], queryFn: () => fetchBalance(), refetchInterval: 60_000 });
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Bundle>(empty);
   const [pct, setPct] = useState<number>(20);
   const [pctNet, setPctNet] = useState<"ALL" | "MTN" | "Telecel" | "AT">("ALL");
+  const [syncing, setSyncing] = useState(false);
+
+  const doSync = async () => {
+    if (!confirm(`Sync wholesale prices from Mobigh and set sell = cost × (1 + ${pct}%)?`)) return;
+    setSyncing(true);
+    try {
+      const r = await syncMobigh({ data: { marginPercent: pct } });
+      toast.success(`Synced ${r.updated} bundle(s) · skipped ${r.skipped}`);
+      qc.invalidateQueries({ queryKey: ["admin-bundles"] });
+      qc.invalidateQueries({ queryKey: ["bundles"] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Sync failed");
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const save = async () => {
     try {
@@ -79,8 +100,17 @@ function AdminBundles() {
 
   return (
     <main className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Bundles</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold">Bundles</h1>
+          <span className="rounded-full border bg-muted/40 px-3 py-1 text-xs">
+            Mobigh wallet: <strong>{balanceQ.data ? `GHS ${balanceQ.data.balance.toFixed(2)}` : "…"}</strong>
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="secondary" onClick={doSync} disabled={syncing}>
+            {syncing ? "Syncing…" : `Sync from Mobigh (+${pct}%)`}
+          </Button>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => setEditing(empty)}>New bundle</Button>
@@ -153,6 +183,7 @@ function AdminBundles() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Bulk % margin reset */}

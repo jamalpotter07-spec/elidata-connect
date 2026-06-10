@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { fulfill } from "./reseller.server";
 import { notifyAdmin } from "./notify.server";
+import { listMobighPackages, getMobighBalance, mobighNetCode } from "./reseller-packages.server";
 
 async function assertAdmin(userId: string) {
   const { data, error } = await supabaseAdmin
@@ -327,4 +328,48 @@ export const adminRefundOrder = createServerFn({ method: "POST" })
     await notifyAdmin(`💸 <b>Refund</b> GHS ${Number(order.amount_ghs).toFixed(2)} · ${order.network} → ${order.recipient_phone}\nReason: ${data.reason ?? "—"}`);
     return { ok: true };
   });
+
+// Sync wholesale prices from Mobigh /packages and recompute sell prices at the given margin.
+export const adminSyncMobighPrices = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({ marginPercent: z.number().min(0).max(500).default(20) }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const packages = await listMobighPackages();
+    const { data: bundles, error } = await supabaseAdmin
+      .from("bundles").select("id, network, data_mb");
+    if (error) throw new Error(error.message);
+    const factor = 1 + data.marginPercent / 100;
+    let updated = 0;
+    let skipped = 0;
+    for (const b of bundles ?? []) {
+      const code = mobighNetCode(b.network);
+      // Match by GB rounded to 1 decimal (our MB is 1024-based, Mobigh's volume is 1000-based).
+      const ourGb = Math.round((b.data_mb / 1024) * 10) / 10;
+      const match = packages.find(
+        (p) => p.network === code && Math.round((p.volume / 1000) * 10) / 10 === ourGb,
+      );
+      if (!match) { skipped++; continue; }
+      const cost = Number(match.price);
+      const sell = Math.round(cost * factor * 100) / 100;
+      const { error: upErr } = await supabaseAdmin
+        .from("bundles")
+        .update({ cost_price_ghs: cost, price_ghs: sell })
+        .eq("id", b.id);
+      if (!upErr) updated++;
+    }
+    await notifyAdmin(`🔄 <b>Mobigh sync</b>\nUpdated: ${updated}\nSkipped (no match): ${skipped}\nMargin: ${data.marginPercent}%`);
+    return { ok: true, updated, skipped, packageCount: packages.length };
+  });
+
+export const adminMobighBalance = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.userId);
+    const balance = await getMobighBalance();
+    return { balance };
+  });
+
 

@@ -103,3 +103,47 @@ export const getGuestOrder = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return { order };
   });
+
+// One-click re-order: re-create a new order from a previous one (same bundle + recipient).
+export const reorderOrder = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ orderId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+    const { data: prev, error } = await supabaseAdmin
+      .from("orders")
+      .select("bundle_id, recipient_phone, user_id")
+      .eq("id", data.orderId)
+      .single();
+    if (error || !prev) throw new Error("Original order not found");
+    if (prev.user_id && prev.user_id !== userId) throw new Error("Not your order");
+    if (!prev.bundle_id) throw new Error("Original bundle missing");
+
+    const { data: bundle, error: bErr } = await supabaseAdmin
+      .from("bundles")
+      .select("id, network, data_mb, price_ghs, active")
+      .eq("id", prev.bundle_id)
+      .single();
+    if (bErr || !bundle) throw new Error("Bundle no longer exists");
+    if (!bundle.active) throw new Error("Bundle is no longer available");
+
+    const { data: order, error: insErr } = await supabaseAdmin
+      .from("orders")
+      .insert({
+        user_id: userId,
+        bundle_id: bundle.id,
+        network: bundle.network,
+        data_mb: bundle.data_mb,
+        recipient_phone: prev.recipient_phone,
+        amount_ghs: bundle.price_ghs,
+        status: "pending",
+      })
+      .select("id")
+      .single();
+    if (insErr) throw new Error(insErr.message);
+    await notifyAdmin(
+      `🔁 <b>Re-order</b> ${bundle.network} ${(bundle.data_mb / 1024).toFixed(1)} GB → ${prev.recipient_phone}\nOrder: <code>${order.id}</code>`,
+    );
+    return { orderId: order.id };
+  });
+
