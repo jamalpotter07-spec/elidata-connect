@@ -23,6 +23,8 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/_admin'
 import { Route as AuthenticatedOrdersOrderIdRouteImport } from './routes/_authenticated/orders.$orderId'
 import { Route as AuthenticatedAdminAdminIndexRouteImport } from './routes/_authenticated/_admin/admin.index'
+import { Route as ApiPublicHooksDailyProfitRouteImport } from './routes/api/public/hooks/daily-profit'
+import { Route as ApiPublicHooksBalanceCheckRouteImport } from './routes/api/public/hooks/balance-check'
 import { Route as AuthenticatedAdminAdminUsersRouteImport } from './routes/_authenticated/_admin/admin.users'
 import { Route as AuthenticatedAdminAdminOrdersRouteImport } from './routes/_authenticated/_admin/admin.orders'
 import { Route as AuthenticatedAdminAdminBundlesRouteImport } from './routes/_authenticated/_admin/admin.bundles'
@@ -98,6 +100,18 @@ const AuthenticatedAdminAdminIndexRoute =
     path: '/admin/',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const ApiPublicHooksDailyProfitRoute =
+  ApiPublicHooksDailyProfitRouteImport.update({
+    id: '/api/public/hooks/daily-profit',
+    path: '/api/public/hooks/daily-profit',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksBalanceCheckRoute =
+  ApiPublicHooksBalanceCheckRouteImport.update({
+    id: '/api/public/hooks/balance-check',
+    path: '/api/public/hooks/balance-check',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedAdminAdminUsersRoute =
   AuthenticatedAdminAdminUsersRouteImport.update({
     id: '/admin/users',
@@ -138,6 +152,8 @@ export interface FileRoutesByFullPath {
   '/admin/bundles': typeof AuthenticatedAdminAdminBundlesRoute
   '/admin/orders': typeof AuthenticatedAdminAdminOrdersRoute
   '/admin/users': typeof AuthenticatedAdminAdminUsersRoute
+  '/api/public/hooks/balance-check': typeof ApiPublicHooksBalanceCheckRoute
+  '/api/public/hooks/daily-profit': typeof ApiPublicHooksDailyProfitRoute
   '/admin/': typeof AuthenticatedAdminAdminIndexRoute
   '/admin/orders/$orderId': typeof AuthenticatedAdminAdminOrdersOrderIdRoute
 }
@@ -156,6 +172,8 @@ export interface FileRoutesByTo {
   '/admin/bundles': typeof AuthenticatedAdminAdminBundlesRoute
   '/admin/orders': typeof AuthenticatedAdminAdminOrdersRoute
   '/admin/users': typeof AuthenticatedAdminAdminUsersRoute
+  '/api/public/hooks/balance-check': typeof ApiPublicHooksBalanceCheckRoute
+  '/api/public/hooks/daily-profit': typeof ApiPublicHooksDailyProfitRoute
   '/admin': typeof AuthenticatedAdminAdminIndexRoute
   '/admin/orders/$orderId': typeof AuthenticatedAdminAdminOrdersOrderIdRoute
 }
@@ -177,6 +195,8 @@ export interface FileRoutesById {
   '/_authenticated/_admin/admin/bundles': typeof AuthenticatedAdminAdminBundlesRoute
   '/_authenticated/_admin/admin/orders': typeof AuthenticatedAdminAdminOrdersRoute
   '/_authenticated/_admin/admin/users': typeof AuthenticatedAdminAdminUsersRoute
+  '/api/public/hooks/balance-check': typeof ApiPublicHooksBalanceCheckRoute
+  '/api/public/hooks/daily-profit': typeof ApiPublicHooksDailyProfitRoute
   '/_authenticated/_admin/admin/': typeof AuthenticatedAdminAdminIndexRoute
   '/_authenticated/_admin/admin/orders_/$orderId': typeof AuthenticatedAdminAdminOrdersOrderIdRoute
 }
@@ -197,6 +217,8 @@ export interface FileRouteTypes {
     | '/admin/bundles'
     | '/admin/orders'
     | '/admin/users'
+    | '/api/public/hooks/balance-check'
+    | '/api/public/hooks/daily-profit'
     | '/admin/'
     | '/admin/orders/$orderId'
   fileRoutesByTo: FileRoutesByTo
@@ -215,6 +237,8 @@ export interface FileRouteTypes {
     | '/admin/bundles'
     | '/admin/orders'
     | '/admin/users'
+    | '/api/public/hooks/balance-check'
+    | '/api/public/hooks/daily-profit'
     | '/admin'
     | '/admin/orders/$orderId'
   id:
@@ -235,6 +259,8 @@ export interface FileRouteTypes {
     | '/_authenticated/_admin/admin/bundles'
     | '/_authenticated/_admin/admin/orders'
     | '/_authenticated/_admin/admin/users'
+    | '/api/public/hooks/balance-check'
+    | '/api/public/hooks/daily-profit'
     | '/_authenticated/_admin/admin/'
     | '/_authenticated/_admin/admin/orders_/$orderId'
   fileRoutesById: FileRoutesById
@@ -249,6 +275,8 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   TermsRoute: typeof TermsRoute
   TrackOrderIdRoute: typeof TrackOrderIdRoute
+  ApiPublicHooksBalanceCheckRoute: typeof ApiPublicHooksBalanceCheckRoute
+  ApiPublicHooksDailyProfitRoute: typeof ApiPublicHooksDailyProfitRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -351,6 +379,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/api/public/hooks/daily-profit': {
+      id: '/api/public/hooks/daily-profit'
+      path: '/api/public/hooks/daily-profit'
+      fullPath: '/api/public/hooks/daily-profit'
+      preLoaderRoute: typeof ApiPublicHooksDailyProfitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/balance-check': {
+      id: '/api/public/hooks/balance-check'
+      path: '/api/public/hooks/balance-check'
+      fullPath: '/api/public/hooks/balance-check'
+      preLoaderRoute: typeof ApiPublicHooksBalanceCheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/_admin/admin/users': {
       id: '/_authenticated/_admin/admin/users'
       path: '/admin/users'
@@ -439,6 +481,8 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   TermsRoute: TermsRoute,
   TrackOrderIdRoute: TrackOrderIdRoute,
+  ApiPublicHooksBalanceCheckRoute: ApiPublicHooksBalanceCheckRoute,
+  ApiPublicHooksDailyProfitRoute: ApiPublicHooksDailyProfitRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
