@@ -26,7 +26,18 @@ const PHONE = "0500843914";
 const WA_INTL = "233500843914";
 
 function AboutPage() {
+  // Force light theme on this page (like Google's policy pages) — restore on unmount.
+  useEffect(() => {
+    const root = document.documentElement;
+    const wasDark = root.classList.contains("dark");
+    root.classList.remove("dark");
+    return () => {
+      if (wasDark) root.classList.add("dark");
+    };
+  }, []);
   return (
+    <div className="bg-white text-zinc-900 [color-scheme:light]">
+
     <>
       <NavBar />
       <main className="mx-auto w-full max-w-7xl min-w-0 overflow-hidden pb-20">
