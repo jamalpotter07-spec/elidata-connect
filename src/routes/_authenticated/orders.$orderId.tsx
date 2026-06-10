@@ -1,16 +1,24 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getMyOrder } from "@/lib/orders.functions";
+import { getMyOrder, reorderOrder } from "@/lib/orders.functions";
+import { payAndFulfill } from "@/lib/checkout.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge, NetworkBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/orders/$orderId")({ component: OrderDetailPage });
 
 function OrderDetailPage() {
   const { orderId } = Route.useParams();
   const fn = useServerFn(getMyOrder);
+  const reorder = useServerFn(reorderOrder);
+  const pay = useServerFn(payAndFulfill);
+  const navigate = useNavigate();
+  const [busy, setBusy] = useState(false);
   const { data, isLoading } = useQuery({
     queryKey: ["order", orderId],
     queryFn: () => fn({ data: { orderId } }),
@@ -20,6 +28,20 @@ function OrderDetailPage() {
   if (isLoading) return <main className="container mx-auto px-4 py-8">Loading…</main>;
   const o = data?.order;
   if (!o) return <main className="container mx-auto px-4 py-8">Order not found.</main>;
+
+  const onReorder = async () => {
+    setBusy(true);
+    try {
+      const { orderId: newId } = await reorder({ data: { orderId } });
+      pay({ data: { orderId: newId } }).catch(() => {});
+      toast.success("Re-order placed — taking you to live tracking");
+      navigate({ to: "/orders/$orderId", params: { orderId: newId } });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not re-order");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <main className="container mx-auto max-w-2xl px-4 py-8">
@@ -40,6 +62,12 @@ function OrderDetailPage() {
           <Row label="Reseller ref">{o.reseller_reference ?? "—"}</Row>
           <Row label="Created">{new Date(o.created_at).toLocaleString()}</Row>
           {o.notes && <Row label="Notes">{o.notes}</Row>}
+          <div className="pt-4">
+            <Button onClick={onReorder} disabled={busy} className="w-full">
+              <RefreshCw className="mr-2 h-4 w-4" />
+              {busy ? "Placing…" : `Re-order ${(o.data_mb / 1024).toFixed(1)} GB to ${o.recipient_phone}`}
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </main>
@@ -54,3 +82,4 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
     </div>
   );
 }
+
