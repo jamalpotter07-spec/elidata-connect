@@ -42,11 +42,30 @@ function AdminBundles() {
   const upsert = useServerFn(adminUpsertBundle);
   const del = useServerFn(adminDeleteBundle);
   const bulkAdjust = useServerFn(adminBulkAdjustPrices);
+  const syncMobigh = useServerFn(adminSyncMobighPrices);
+  const fetchBalance = useServerFn(adminMobighBalance);
   const { data } = useQuery({ queryKey: ["admin-bundles"], queryFn: () => list() });
+  const balanceQ = useQuery({ queryKey: ["mobigh-balance"], queryFn: () => fetchBalance(), refetchInterval: 60_000 });
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Bundle>(empty);
   const [pct, setPct] = useState<number>(20);
   const [pctNet, setPctNet] = useState<"ALL" | "MTN" | "Telecel" | "AT">("ALL");
+  const [syncing, setSyncing] = useState(false);
+
+  const doSync = async () => {
+    if (!confirm(`Sync wholesale prices from Mobigh and set sell = cost × (1 + ${pct}%)?`)) return;
+    setSyncing(true);
+    try {
+      const r = await syncMobigh({ data: { marginPercent: pct } });
+      toast.success(`Synced ${r.updated} bundle(s) · skipped ${r.skipped}`);
+      qc.invalidateQueries({ queryKey: ["admin-bundles"] });
+      qc.invalidateQueries({ queryKey: ["bundles"] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Sync failed");
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const save = async () => {
     try {
