@@ -185,7 +185,8 @@ function AboutPage() {
           </div>
         </section>
       </main>
-    </>
+    </div>
+
   );
 }
 
