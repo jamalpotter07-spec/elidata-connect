@@ -187,7 +187,7 @@ function InfoStrip() {
   const slide = infoSlides[idx];
   const Icon = slide.icon;
   return (
-    <div className="flex min-h-12 items-center gap-3 border-t border-brand-line/60 px-1 py-2">
+    <div className="flex min-h-12 items-center gap-3 border-t border-brand-line/60 px-1 py-2 lg:hidden">
       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-brand text-brand-foreground">
         <Icon className="h-3.5 w-3.5" />
       </span>
