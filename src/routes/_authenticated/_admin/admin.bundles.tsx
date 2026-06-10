@@ -106,6 +106,10 @@ function AdminBundles() {
               <div className="space-y-1">
                 <Label>Data (MB)</Label>
                 <Input type="number" value={editing.data_mb} onChange={(e) => setEditing({ ...editing, data_mb: Number(e.target.value) })} />
+                <p className="text-xs text-muted-foreground">
+                  Displays as <strong>{(editing.data_mb / 1024).toFixed(editing.data_mb % 1024 ? 1 : 0)} GB</strong> on the bundles page
+                  {" "}· 1 GB = 1024 MB
+                </p>
               </div>
               <div className="space-y-1">
                 <Label>Sell price (GHS)</Label>
