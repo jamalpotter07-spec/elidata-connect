@@ -183,6 +183,7 @@ function AdminBundles() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Bulk % margin reset */}
