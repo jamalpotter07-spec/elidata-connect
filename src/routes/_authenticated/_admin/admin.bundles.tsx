@@ -100,8 +100,17 @@ function AdminBundles() {
 
   return (
     <main className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Bundles</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold">Bundles</h1>
+          <span className="rounded-full border bg-muted/40 px-3 py-1 text-xs">
+            Mobigh wallet: <strong>{balanceQ.data ? `GHS ${balanceQ.data.balance.toFixed(2)}` : "…"}</strong>
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="secondary" onClick={doSync} disabled={syncing}>
+            {syncing ? "Syncing…" : `Sync from Mobigh (+${pct}%)`}
+          </Button>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => setEditing(empty)}>New bundle</Button>
