@@ -46,7 +46,7 @@ function PrivacyPage() {
             You may contact us to correct inaccurate account or order information, request clarification on stored information or raise concerns about how your information has been handled.
           </PolicySection>
           <PolicySection title="Contact">
-            For privacy-related questions, email support@elidata.gh or message 0500843914 with enough detail for our team to verify and review your request.
+            For privacy-related questions, email eliahiablie3.0@gmail.com or message 0500843914 with enough detail for our team to verify and review your request.
           </PolicySection>
         </div>
       </main>
