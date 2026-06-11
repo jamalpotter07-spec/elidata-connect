@@ -1,17 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { adminStats, adminListBundles, adminListOrders, adminRefundOrder, adminManualOrder } from "@/lib/admin.functions";
+import { adminStats, adminListBundles, adminListOrders, adminRefundOrder } from "@/lib/admin.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { NetworkBadge, StatusBadge } from "@/components/status-badge";
-import { Undo2, Zap } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Undo2 } from "lucide-react";
 import { toast } from "sonner";
+import { ManualOrderCard } from "@/components/manual-order-card";
 
 export const Route = createFileRoute("/_authenticated/_admin/admin/")({ component: AdminHome });
 
