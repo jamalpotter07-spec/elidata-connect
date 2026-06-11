@@ -37,7 +37,7 @@ function AboutPage() {
   }, []);
   return (
     <div className="bg-white text-zinc-900 [color-scheme:light]">
-      <NavBar />
+      <NavBar hideThemeToggle />
 
       <main className="mx-auto w-full max-w-7xl min-w-0 overflow-hidden pb-20">
         <section className="border-b">
@@ -45,14 +45,15 @@ function AboutPage() {
             <div className="min-w-0 max-w-3xl">
               <span className="inline-flex items-center gap-1.5 rounded-full border bg-card px-3 py-1 text-xs font-medium">
                 <HeartHandshake className="h-3 w-3 text-brand" />
-                Proudly serving Ghana
+                Based in Accra, Ghana
               </span>
               <h1 className="mt-4 max-w-[12ch] text-4xl font-extrabold tracking-tight text-balance md:text-5xl">
                 Cheap data, <span className="text-brand">honest service.</span>
               </h1>
               <p className="mt-4 max-w-2xl text-lg leading-8 text-muted-foreground">
-                Eli Data Resales sells MTN, Telecel and AirtelTigo data bundles at reseller prices,
-                delivered to any Ghana number. Every order is tracked live, and every failed order is refundable.
+                Eli Data Resales is operated from <strong>Accra, Ghana</strong>. We sell MTN, Telecel and
+                AirtelTigo data bundles at reseller prices, delivered to any Ghana number. Every order is
+                tracked live, and every failed order is refundable.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Button asChild className="bg-brand text-brand-foreground hover:bg-brand/90">
