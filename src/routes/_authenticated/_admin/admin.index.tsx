@@ -64,10 +64,10 @@ function AdminHome() {
         <Stat title="Failed" value={String(counts.failed ?? 0)} />
       </div>
 
-      <ManualOrderCard bundles={bundles} onDone={() => {
-        qc.invalidateQueries({ queryKey: ["admin-orders"] });
-        qc.invalidateQueries({ queryKey: ["admin-stats"] });
-      }} />
+      <div className="mt-6">
+        <ManualOrderCard />
+      </div>
+
 
       <Card className="mt-8">
         <CardHeader className="flex flex-row items-center justify-between">
