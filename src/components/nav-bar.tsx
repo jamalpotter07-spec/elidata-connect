@@ -41,7 +41,7 @@ function NavTab({ to, label }: { to: "/" | "/about" | "/dashboard"; label: strin
   );
 }
 
-export function NavBar() {
+export function NavBar({ hideThemeToggle = false }: { hideThemeToggle?: boolean } = {}) {
   const { user, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
 
@@ -110,11 +110,11 @@ export function NavBar() {
                 </Button>
               </>
             ) : null}
-            <ThemeToggle />
+            {!hideThemeToggle && <ThemeToggle />}
           </nav>
 
           <div className="flex items-center gap-2 lg:hidden">
-            <ThemeToggle />
+            {!hideThemeToggle && <ThemeToggle />}
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" size="icon" aria-label="Open navigation menu">
