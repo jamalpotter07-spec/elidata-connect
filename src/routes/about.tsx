@@ -21,7 +21,7 @@ export const Route = createFileRoute("/about")({
   }),
 });
 
-const EMAIL = "support@elidata.gh";
+const EMAIL = "eliahiablie3.0@gmail.com";
 const PHONE = "0500843914";
 const WA_INTL = "233500843914";
 

@@ -49,7 +49,7 @@ function TermsPage() {
             To the fullest extent permitted by law, Eli Data Resales is not liable for indirect, incidental or consequential losses arising from service interruptions, telecom delays, user input errors or third-party processor downtime.
           </TermsSection>
           <TermsSection title="Contact">
-            Questions about these terms can be sent to support@elidata.gh or raised by WhatsApp on 0500843914.
+            Questions about these terms can be sent to eliahiablie3.0@gmail.com or raised by WhatsApp on 0500843914.
           </TermsSection>
         </div>
       </main>
