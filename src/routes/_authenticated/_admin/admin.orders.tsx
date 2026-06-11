@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { adminListOrders } from "@/lib/admin.functions";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatusBadge, NetworkBadge } from "@/components/status-badge";
+import { ManualOrderCard } from "@/components/manual-order-card";
 
 export const Route = createFileRoute("/_authenticated/_admin/admin/orders")({ component: AdminOrders });
 
@@ -13,7 +14,8 @@ function AdminOrders() {
   const orders = data?.orders ?? [];
 
   return (
-    <main className="container mx-auto px-4 py-8">
+    <main className="container mx-auto px-4 py-8 space-y-6">
+      <ManualOrderCard />
       <h1 className="text-2xl font-bold">All orders</h1>
       <div className="mt-6 rounded-lg border">
         <Table>

@@ -1,17 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { adminStats, adminListBundles, adminListOrders, adminRefundOrder, adminManualOrder } from "@/lib/admin.functions";
+import { adminStats, adminListBundles, adminListOrders, adminRefundOrder } from "@/lib/admin.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { NetworkBadge, StatusBadge } from "@/components/status-badge";
-import { Undo2, Zap } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Undo2 } from "lucide-react";
 import { toast } from "sonner";
+import { ManualOrderCard } from "@/components/manual-order-card";
 
 export const Route = createFileRoute("/_authenticated/_admin/admin/")({ component: AdminHome });
 
@@ -67,10 +64,10 @@ function AdminHome() {
         <Stat title="Failed" value={String(counts.failed ?? 0)} />
       </div>
 
-      <ManualOrderCard bundles={bundles} onDone={() => {
-        qc.invalidateQueries({ queryKey: ["admin-orders"] });
-        qc.invalidateQueries({ queryKey: ["admin-stats"] });
-      }} />
+      <div className="mt-6">
+        <ManualOrderCard />
+      </div>
+
 
       <Card className="mt-8">
         <CardHeader className="flex flex-row items-center justify-between">
@@ -173,99 +170,3 @@ function Stat({ title, value }: { title: string; value: string }) {
   );
 }
 
-function ManualOrderCard({ bundles, onDone }: { bundles: any[]; onDone: () => void }) {
-  const manualFn = useServerFn(adminManualOrder);
-  const [network, setNetwork] = useState<"MTN" | "Telecel" | "AT" | "">("");
-  const [bundleId, setBundleId] = useState<string>("");
-  const [phone, setPhone] = useState("");
-  const [note, setNote] = useState("");
-  const [busy, setBusy] = useState(false);
-
-  const activeBundles = useMemo(
-    () => bundles.filter((b: any) => b.active && (!network || b.network === network)),
-    [bundles, network],
-  );
-  const selected = activeBundles.find((b: any) => b.id === bundleId);
-
-  const submit = async () => {
-    if (!bundleId) return toast.error("Select a bundle");
-    if (!/^0\d{9}$/.test(phone.trim())) return toast.error("Enter a valid 10-digit Ghana phone (e.g. 0241234567)");
-    setBusy(true);
-    try {
-      const res = await manualFn({ data: { bundleId, recipientPhone: phone.trim(), note: note.trim() || undefined } });
-      if (res.ok) {
-        toast.success(`Delivered to ${phone}`);
-        setPhone(""); setNote(""); setBundleId("");
-        onDone();
-      } else {
-        toast.error(`Failed: ${(res as any).error ?? "unknown"}`);
-        onDone();
-      }
-    } catch (e: any) {
-      toast.error(e?.message ?? "Manual order failed");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <Card className="mt-8 border-brand/40">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2"><Zap className="h-4 w-4 text-brand" /> Manual order (offline customer)</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid gap-3 md:grid-cols-4">
-          <div>
-            <Label className="text-xs">Network</Label>
-            <Select value={network} onValueChange={(v) => { setNetwork(v as any); setBundleId(""); }}>
-              <SelectTrigger><SelectValue placeholder="Select network" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="MTN">MTN</SelectItem>
-                <SelectItem value="Telecel">Telecel</SelectItem>
-                <SelectItem value="AT">AirtelTigo</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label className="text-xs">Bundle</Label>
-            <Select value={bundleId} onValueChange={setBundleId} disabled={!network}>
-              <SelectTrigger><SelectValue placeholder={network ? "Select bundle" : "Pick network first"} /></SelectTrigger>
-              <SelectContent>
-                {activeBundles.map((b: any) => (
-                  <SelectItem key={b.id} value={b.id}>
-                    {b.name} — GHS {Number(b.price_ghs).toFixed(2)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label className="text-xs">Recipient phone</Label>
-            <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="0241234567" inputMode="numeric" />
-          </div>
-          <div>
-            <Label className="text-xs">Note (optional)</Label>
-            <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. WhatsApp customer" />
-          </div>
-        </div>
-
-        {selected && (
-          <p className="mt-3 text-xs text-muted-foreground">
-            Selling for <strong>GHS {Number(selected.price_ghs).toFixed(2)}</strong> ·
-            cost GHS {Number(selected.cost_price_ghs ?? 0).toFixed(2)} ·
-            profit GHS {(Number(selected.price_ghs) - Number(selected.cost_price_ghs ?? 0)).toFixed(2)}
-          </p>
-        )}
-
-        <div className="mt-4 flex items-center gap-3">
-          <Button onClick={submit} disabled={busy} className="bg-brand text-brand-foreground hover:bg-brand/90">
-            {busy ? "Sending…" : "Fulfill now"}
-          </Button>
-          <p className="text-xs text-muted-foreground">
-            Skips Paystack — calls Mobigh directly and records the order as paid + delivered.
-          </p>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
