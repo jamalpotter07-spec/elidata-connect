@@ -372,4 +372,72 @@ export const adminMobighBalance = createServerFn({ method: "GET" })
     return { balance };
   });
 
+// Manual order fulfillment — admin processes an order for an offline customer (DM/WhatsApp).
+// Creates an order, marks it paid (manual), calls Mobigh purchase, and records the result.
+export const adminManualOrder = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({
+      bundleId: z.string().uuid(),
+      recipientPhone: z.string().trim().min(9).max(15),
+      note: z.string().max(300).optional(),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+
+    const { data: bundle, error: bErr } = await supabaseAdmin
+      .from("bundles").select("*").eq("id", data.bundleId).single();
+    if (bErr || !bundle) throw new Error("Bundle not found");
+
+    // Create the order (owned by the admin running the action).
+    const reference = `MANUAL-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    const { data: order, error: oErr } = await supabaseAdmin
+      .from("orders")
+      .insert({
+        user_id: context.userId,
+        bundle_id: bundle.id,
+        network: bundle.network,
+        data_mb: bundle.data_mb,
+        recipient_phone: data.recipientPhone,
+        amount_ghs: bundle.price_ghs,
+        status: "paid",
+        paystack_reference: reference,
+        notes: `Manual order (offline customer). ${data.note ?? ""}`.trim(),
+      })
+      .select("*").single();
+    if (oErr || !order) throw new Error(oErr?.message ?? "Could not create order");
+
+    await supabaseAdmin.from("payments").insert({
+      order_id: order.id,
+      reference,
+      amount_ghs: bundle.price_ghs,
+      status: "success",
+      provider: "manual-admin",
+      metadata: { manual: true, created_by: context.userId, note: data.note ?? "" },
+    });
+
+    await supabaseAdmin.from("orders").update({ status: "processing" }).eq("id", order.id);
+    const result = await fulfill({
+      network: bundle.network as any,
+      dataMb: bundle.data_mb,
+      recipientPhone: data.recipientPhone,
+      orderId: order.id,
+    });
+
+    if (result.ok) {
+      await supabaseAdmin.from("orders")
+        .update({ status: "delivered", reseller_reference: result.reference })
+        .eq("id", order.id);
+      await notifyAdmin(`✋ <b>Manual order delivered</b> ${bundle.network} ${bundle.name} → ${data.recipientPhone}`);
+      return { ok: true, orderId: order.id, status: "delivered" as const };
+    }
+
+    await supabaseAdmin.from("orders")
+      .update({ status: "failed", notes: result.error }).eq("id", order.id);
+    await notifyAdmin(`✋❌ <b>Manual order failed</b> ${bundle.network} ${bundle.name} → ${data.recipientPhone}\n${result.error}`);
+    return { ok: false, orderId: order.id, status: "failed" as const, error: result.error };
+  });
+
+
 
