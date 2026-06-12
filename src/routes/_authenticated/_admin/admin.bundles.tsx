@@ -17,6 +17,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { NetworkBadge } from "@/components/status-badge";
+import { ManualOrderCard } from "@/components/manual-order-card";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -99,7 +100,9 @@ function AdminBundles() {
   };
 
   return (
-    <main className="container mx-auto px-4 py-8">
+    <main className="container mx-auto px-4 py-8 space-y-6">
+      <ManualOrderCard />
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold">Bundles</h1>
