@@ -45,27 +45,26 @@ function AdminHome() {
   const avgMargin = totalPrice > 0 ? (((totalPrice - totalCost) / totalPrice) * 100).toFixed(0) + "%" : "—";
 
   return (
-    <main className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between">
+    <main className="container mx-auto px-4 py-6 space-y-6">
+      {/* Manual order — always at the very top so it's reachable on mobile without scrolling */}
+      <ManualOrderCard />
+
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-bold">Admin dashboard</h1>
-        <div className="flex gap-2">
-          <Button asChild variant="outline"><Link to="/admin/bundles">Bundles</Link></Button>
-          <Button asChild variant="outline"><Link to="/admin/orders">Orders</Link></Button>
-          <Button asChild variant="outline"><Link to="/admin/users">Users</Link></Button>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline" size="sm"><Link to="/admin/bundles">Bundles</Link></Button>
+          <Button asChild variant="outline" size="sm"><Link to="/admin/orders">Orders</Link></Button>
+          <Button asChild variant="outline" size="sm"><Link to="/admin/users">Users</Link></Button>
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         <Stat title="Total revenue" value={`GHS ${Number(data?.totalRevenue ?? 0).toFixed(2)}`} />
         <Stat title="Total orders" value={String(data?.totalOrders ?? 0)} />
         <Stat title="Average margin" value={avgMargin} />
         <Stat title="Delivered" value={String(counts.delivered ?? 0)} />
         <Stat title="Pending" value={String(counts.pending ?? 0)} />
         <Stat title="Failed" value={String(counts.failed ?? 0)} />
-      </div>
-
-      <div className="mt-6">
-        <ManualOrderCard />
       </div>
 
 
