@@ -23,6 +23,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/_admin'
 import { Route as AuthenticatedOrdersOrderIdRouteImport } from './routes/_authenticated/orders.$orderId'
 import { Route as AuthenticatedAdminAdminIndexRouteImport } from './routes/_authenticated/_admin/admin.index'
+import { Route as ApiPublicHooksTelegramSetupRouteImport } from './routes/api/public/hooks/telegram-setup'
 import { Route as ApiPublicHooksTelegramRouteImport } from './routes/api/public/hooks/telegram'
 import { Route as ApiPublicHooksDailyProfitRouteImport } from './routes/api/public/hooks/daily-profit'
 import { Route as ApiPublicHooksBalanceCheckRouteImport } from './routes/api/public/hooks/balance-check'
@@ -101,6 +102,12 @@ const AuthenticatedAdminAdminIndexRoute =
     path: '/admin/',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const ApiPublicHooksTelegramSetupRoute =
+  ApiPublicHooksTelegramSetupRouteImport.update({
+    id: '/api/public/hooks/telegram-setup',
+    path: '/api/public/hooks/telegram-setup',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksTelegramRoute = ApiPublicHooksTelegramRouteImport.update({
   id: '/api/public/hooks/telegram',
   path: '/api/public/hooks/telegram',
@@ -161,6 +168,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/balance-check': typeof ApiPublicHooksBalanceCheckRoute
   '/api/public/hooks/daily-profit': typeof ApiPublicHooksDailyProfitRoute
   '/api/public/hooks/telegram': typeof ApiPublicHooksTelegramRoute
+  '/api/public/hooks/telegram-setup': typeof ApiPublicHooksTelegramSetupRoute
   '/admin/': typeof AuthenticatedAdminAdminIndexRoute
   '/admin/orders/$orderId': typeof AuthenticatedAdminAdminOrdersOrderIdRoute
 }
@@ -182,6 +190,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/balance-check': typeof ApiPublicHooksBalanceCheckRoute
   '/api/public/hooks/daily-profit': typeof ApiPublicHooksDailyProfitRoute
   '/api/public/hooks/telegram': typeof ApiPublicHooksTelegramRoute
+  '/api/public/hooks/telegram-setup': typeof ApiPublicHooksTelegramSetupRoute
   '/admin': typeof AuthenticatedAdminAdminIndexRoute
   '/admin/orders/$orderId': typeof AuthenticatedAdminAdminOrdersOrderIdRoute
 }
@@ -206,6 +215,7 @@ export interface FileRoutesById {
   '/api/public/hooks/balance-check': typeof ApiPublicHooksBalanceCheckRoute
   '/api/public/hooks/daily-profit': typeof ApiPublicHooksDailyProfitRoute
   '/api/public/hooks/telegram': typeof ApiPublicHooksTelegramRoute
+  '/api/public/hooks/telegram-setup': typeof ApiPublicHooksTelegramSetupRoute
   '/_authenticated/_admin/admin/': typeof AuthenticatedAdminAdminIndexRoute
   '/_authenticated/_admin/admin/orders_/$orderId': typeof AuthenticatedAdminAdminOrdersOrderIdRoute
 }
@@ -229,6 +239,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/balance-check'
     | '/api/public/hooks/daily-profit'
     | '/api/public/hooks/telegram'
+    | '/api/public/hooks/telegram-setup'
     | '/admin/'
     | '/admin/orders/$orderId'
   fileRoutesByTo: FileRoutesByTo
@@ -250,6 +261,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/balance-check'
     | '/api/public/hooks/daily-profit'
     | '/api/public/hooks/telegram'
+    | '/api/public/hooks/telegram-setup'
     | '/admin'
     | '/admin/orders/$orderId'
   id:
@@ -273,6 +285,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/balance-check'
     | '/api/public/hooks/daily-profit'
     | '/api/public/hooks/telegram'
+    | '/api/public/hooks/telegram-setup'
     | '/_authenticated/_admin/admin/'
     | '/_authenticated/_admin/admin/orders_/$orderId'
   fileRoutesById: FileRoutesById
@@ -290,6 +303,7 @@ export interface RootRouteChildren {
   ApiPublicHooksBalanceCheckRoute: typeof ApiPublicHooksBalanceCheckRoute
   ApiPublicHooksDailyProfitRoute: typeof ApiPublicHooksDailyProfitRoute
   ApiPublicHooksTelegramRoute: typeof ApiPublicHooksTelegramRoute
+  ApiPublicHooksTelegramSetupRoute: typeof ApiPublicHooksTelegramSetupRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -391,6 +405,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/api/public/hooks/telegram-setup': {
+      id: '/api/public/hooks/telegram-setup'
+      path: '/api/public/hooks/telegram-setup'
+      fullPath: '/api/public/hooks/telegram-setup'
+      preLoaderRoute: typeof ApiPublicHooksTelegramSetupRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/telegram': {
       id: '/api/public/hooks/telegram'
@@ -504,17 +525,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksBalanceCheckRoute: ApiPublicHooksBalanceCheckRoute,
   ApiPublicHooksDailyProfitRoute: ApiPublicHooksDailyProfitRoute,
   ApiPublicHooksTelegramRoute: ApiPublicHooksTelegramRoute,
+  ApiPublicHooksTelegramSetupRoute: ApiPublicHooksTelegramSetupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
