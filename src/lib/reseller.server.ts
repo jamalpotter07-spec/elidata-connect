@@ -33,6 +33,10 @@ export async function fulfill(input: FulfillInput): Promise<FulfillResult> {
   }
 
   try {
+    // Mobigh's `volume` is in MB but uses 1000 MB = 1 GB (decimal),
+    // while our catalog stores data_mb in 1024-based MB. Convert before sending.
+    const mobighVolume = Math.round((input.dataMb / 1024) * 1000);
+
     const res = await fetch(`${BASE}/purchase`, {
       method: "POST",
       headers: {
@@ -40,6 +44,12 @@ export async function fulfill(input: FulfillInput): Promise<FulfillResult> {
         Accept: "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
+      body: JSON.stringify({
+        phone: input.recipientPhone,
+        volume: mobighVolume,
+        network: mobighNetwork(input.network),
+      }),
+    });
       body: JSON.stringify({
         phone: input.recipientPhone,
         volume: input.dataMb,
