@@ -50,12 +50,6 @@ export async function fulfill(input: FulfillInput): Promise<FulfillResult> {
         network: mobighNetwork(input.network),
       }),
     });
-      body: JSON.stringify({
-        phone: input.recipientPhone,
-        volume: input.dataMb,
-        network: mobighNetwork(input.network),
-      }),
-    });
 
     const body = await res.text();
     let parsed: Record<string, unknown> = {};
