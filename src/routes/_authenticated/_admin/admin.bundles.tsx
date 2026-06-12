@@ -17,6 +17,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { NetworkBadge } from "@/components/status-badge";
+import { ManualOrderCard } from "@/components/manual-order-card";
 import { useState } from "react";
 import { toast } from "sonner";
 
