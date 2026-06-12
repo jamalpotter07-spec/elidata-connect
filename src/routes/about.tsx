@@ -45,15 +45,15 @@ function AboutPage() {
             <div className="min-w-0 max-w-3xl">
               <span className="inline-flex items-center gap-1.5 rounded-full border bg-card px-3 py-1 text-xs font-medium">
                 <HeartHandshake className="h-3 w-3 text-brand" />
-                Based in Accra, Ghana
+                Ghana-based data reseller
               </span>
               <h1 className="mt-4 max-w-[12ch] text-4xl font-extrabold tracking-tight text-balance md:text-5xl">
                 Cheap data, <span className="text-brand">honest service.</span>
               </h1>
               <p className="mt-4 max-w-2xl text-lg leading-8 text-muted-foreground">
-                Eli Data Resales is operated from <strong>Accra, Ghana</strong>. We sell MTN, Telecel and
-                AirtelTigo data bundles at reseller prices, delivered to any Ghana number. Every order is
-                tracked live, and every failed order is refundable.
+                Eli Data Resales sells MTN, Telecel and AirtelTigo data bundles at reseller prices,
+                delivered to any Ghana number. Every order is tracked live, and every failed order is
+                refundable.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Button asChild className="bg-brand text-brand-foreground hover:bg-brand/90">
@@ -183,6 +183,20 @@ function AboutPage() {
               href={`mailto:${EMAIL}`}
               cta="Send email"
             />
+          </div>
+        </section>
+
+        {/* Business address — small footer note so Paystack/compliance can locate the operator. */}
+        <section aria-label="Business address" className="border-t">
+          <div className="mx-auto max-w-6xl px-4 py-6 text-xs text-zinc-500">
+            <p itemScope itemType="https://schema.org/Organization">
+              <span itemProp="name">Eli Data Resales</span> ·
+              <span itemProp="address" itemScope itemType="https://schema.org/PostalAddress">
+                {" "}<span itemProp="addressLocality">Dzita</span>,{" "}
+                <span itemProp="addressRegion">Volta Region</span>,{" "}
+                <span itemProp="addressCountry">Ghana</span>
+              </span>
+            </p>
           </div>
         </section>
       </main>

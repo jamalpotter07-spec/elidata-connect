@@ -6,7 +6,7 @@ import { payAndFulfill } from "@/lib/checkout.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge, NetworkBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Share2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -62,10 +62,18 @@ function OrderDetailPage() {
           <Row label="Reseller ref">{o.reseller_reference ?? "—"}</Row>
           <Row label="Created">{new Date(o.created_at).toLocaleString()}</Row>
           {o.notes && <Row label="Notes">{o.notes}</Row>}
-          <div className="pt-4">
+          <div className="pt-4 space-y-2">
             <Button onClick={onReorder} disabled={busy} className="w-full">
               <RefreshCw className="mr-2 h-4 w-4" />
               {busy ? "Placing…" : `Re-order ${(o.data_mb / 1024).toFixed(1)} GB to ${o.recipient_phone}`}
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => shareReceipt(o)}
+            >
+              <Share2 className="mr-2 h-4 w-4" />
+              Share receipt on WhatsApp
             </Button>
           </div>
         </CardContent>
@@ -81,5 +89,35 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
       <span className="text-sm font-medium">{children}</span>
     </div>
   );
+}
+
+function shareReceipt(o: any) {
+  const gb = (o.data_mb / 1024).toFixed(1);
+  const trackUrl = `${window.location.origin}/track/${o.id}`;
+  const lines = [
+    `🧾 *Eli Data Resales — receipt*`,
+    ``,
+    `Order: #${String(o.id).slice(0, 8)}`,
+    `Network: ${o.network}`,
+    `Bundle: ${gb} GB`,
+    `Recipient: ${o.recipient_phone}`,
+    `Amount: GHS ${Number(o.amount_ghs).toFixed(2)}`,
+    `Status: ${o.status}`,
+    o.reseller_reference ? `Reference: ${o.reseller_reference}` : null,
+    ``,
+    `Track live: ${trackUrl}`,
+    `Thanks for buying with Eli Data Resales 💙`,
+  ].filter(Boolean).join("\n");
+  const text = encodeURIComponent(lines);
+  // Try native share first (mobile), then fall back to WhatsApp web/app link.
+  const navAny: any = typeof navigator !== "undefined" ? navigator : null;
+  if (navAny?.share) {
+    navAny.share({ title: "Eli Data Resales receipt", text: lines }).catch(() => {
+      window.open(`https://wa.me/?text=${text}`, "_blank");
+    });
+  } else {
+    window.open(`https://wa.me/?text=${text}`, "_blank");
+  }
+  toast.success("Opening WhatsApp share…");
 }
 
