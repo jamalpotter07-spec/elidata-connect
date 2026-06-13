@@ -1,16 +1,30 @@
-// TEST-MODE CHECKOUT — supports guest checkout.
-// TODO: replace with real Paystack /transaction/initialize once approved.
+// ADMIN-ONLY TEST CHECKOUT — production payments go through Paystack
+// (`/api/public/hooks/paystack`) which verifies the HMAC signature before
+// fulfilling. This shortcut is gated to admins so it cannot be used to bypass
+// payment on the live reseller pipeline.
 
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { fulfill } from "./reseller.server";
 import { notifyAdmin } from "./notify.server";
 import { deliveredSms } from "./sms.server";
 
 export const payAndFulfill = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ orderId: z.string().uuid() }).parse(input))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    // Admin-only: verify caller has the admin role before triggering fulfillment.
+    const { data: roleRow, error: roleErr } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId)
+      .eq("role", "admin")
+      .maybeSingle();
+    if (roleErr) throw new Error(roleErr.message);
+    if (!roleRow) throw new Error("Forbidden: admin only");
+
     const { data: order, error: oErr } = await supabaseAdmin
       .from("orders")
       .select("*")
