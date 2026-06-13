@@ -9,6 +9,7 @@ import { NetworkBadge, StatusBadge } from "@/components/status-badge";
 import { Undo2 } from "lucide-react";
 import { toast } from "sonner";
 import { ManualOrderCard } from "@/components/manual-order-card";
+import { ProfitCalculatorCard } from "@/components/profit-calculator-card";
 
 export const Route = createFileRoute("/_authenticated/_admin/admin/")({ component: AdminHome });
 

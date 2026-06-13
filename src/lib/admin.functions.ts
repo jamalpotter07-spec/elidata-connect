@@ -372,6 +372,126 @@ export const adminMobighBalance = createServerFn({ method: "GET" })
     return { balance };
   });
 
+// Profit calculator — per-sale revenue/cost/profit + totals for a date range.
+// Counts only fulfilled sales (paid + delivered). Refunded orders are excluded.
+export const adminProfitReport = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({
+      range: z.enum(["today", "7d", "30d", "all"]).default("7d"),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const now = Date.now();
+    const sinceMs =
+      data.range === "today" ? now - 24 * 60 * 60 * 1000 :
+      data.range === "7d"    ? now - 7  * 24 * 60 * 60 * 1000 :
+      data.range === "30d"   ? now - 30 * 24 * 60 * 60 * 1000 :
+      0;
+    let q = supabaseAdmin
+      .from("orders")
+      .select("id, created_at, network, data_mb, recipient_phone, amount_ghs, status, bundle_id")
+      .in("status", ["paid", "delivered"])
+      .order("created_at", { ascending: false });
+    if (sinceMs > 0) q = q.gte("created_at", new Date(sinceMs).toISOString());
+    const { data: orders, error } = await q;
+    if (error) throw new Error(error.message);
+
+    const bundleIds = Array.from(new Set((orders ?? []).map((o) => o.bundle_id).filter(Boolean)));
+    const bundleMap = new Map<string, { name: string; cost: number }>();
+    if (bundleIds.length) {
+      const { data: bundles } = await supabaseAdmin
+        .from("bundles").select("id, name, cost_price_ghs").in("id", bundleIds);
+      for (const b of bundles ?? []) {
+        bundleMap.set(b.id as string, { name: b.name as string, cost: Number(b.cost_price_ghs ?? 0) });
+      }
+    }
+
+    let revenue = 0, cost = 0;
+    const sales = (orders ?? []).map((o) => {
+      const b = bundleMap.get(o.bundle_id as string);
+      const rev = Number(o.amount_ghs);
+      const c = b?.cost ?? 0;
+      revenue += rev;
+      cost += c;
+      return {
+        id: o.id,
+        created_at: o.created_at,
+        network: o.network,
+        data_mb: o.data_mb,
+        recipient_phone: o.recipient_phone,
+        status: o.status,
+        bundle_name: b?.name ?? null,
+        revenue: rev,
+        cost: c,
+        profit: rev - c,
+      };
+    });
+
+    return {
+      totals: { revenue, cost, profit: revenue - cost, sales: sales.length },
+      sales,
+    };
+  });
+
+// Payment destinations summary — where money landed grouped by provider.
+// Used by the /payments Telegram command and admin dashboard.
+export const adminPaymentDestinations = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({
+      range: z.enum(["today", "7d", "30d", "all"]).default("7d"),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    return computePaymentDestinations(data.range);
+  });
+
+export async function computePaymentDestinations(range: "today" | "7d" | "30d" | "all") {
+  const now = Date.now();
+  const sinceMs =
+    range === "today" ? now - 24 * 60 * 60 * 1000 :
+    range === "7d"    ? now - 7  * 24 * 60 * 60 * 1000 :
+    range === "30d"   ? now - 30 * 24 * 60 * 60 * 1000 :
+    0;
+  let q = supabaseAdmin
+    .from("payments")
+    .select("provider, status, amount_ghs, created_at")
+    .eq("status", "success");
+  if (sinceMs > 0) q = q.gte("created_at", new Date(sinceMs).toISOString());
+  const { data: rows, error } = await q;
+  if (error) throw new Error(error.message);
+
+  const byProvider = new Map<string, { count: number; amount: number }>();
+  let total = 0;
+  for (const r of rows ?? []) {
+    const amt = Number(r.amount_ghs);
+    total += amt;
+    const prev = byProvider.get(r.provider) ?? { count: 0, amount: 0 };
+    prev.count += 1;
+    prev.amount += amt;
+    byProvider.set(r.provider, prev);
+  }
+  return {
+    total,
+    byProvider: Array.from(byProvider.entries()).map(([provider, v]) => ({
+      provider,
+      destination: destinationFor(provider),
+      count: v.count,
+      amount: v.amount,
+    })),
+  };
+}
+
+function destinationFor(provider: string): string {
+  if (provider === "paystack") return "Paystack settlement account (live keys)";
+  if (provider === "manual-admin") return "Admin/owner direct (offline payment, not banked through Paystack)";
+  if (provider === "refund") return "Refund issued — outgoing to customer";
+  return provider;
+}
+
 // Manual order fulfillment — admin processes an order for an offline customer (DM/WhatsApp).
 // Creates an order, marks it paid (manual), calls Mobigh purchase, and records the result.
 export const adminManualOrder = createServerFn({ method: "POST" })
