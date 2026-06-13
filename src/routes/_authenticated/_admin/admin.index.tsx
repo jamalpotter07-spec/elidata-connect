@@ -9,6 +9,7 @@ import { NetworkBadge, StatusBadge } from "@/components/status-badge";
 import { Undo2 } from "lucide-react";
 import { toast } from "sonner";
 import { ManualOrderCard } from "@/components/manual-order-card";
+import { ProfitCalculatorCard } from "@/components/profit-calculator-card";
 
 export const Route = createFileRoute("/_authenticated/_admin/admin/")({ component: AdminHome });
 
@@ -57,6 +58,8 @@ function AdminHome() {
           <Button asChild variant="outline" size="sm"><Link to="/admin/users">Users</Link></Button>
         </div>
       </div>
+
+      <ProfitCalculatorCard />
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         <Stat title="Total revenue" value={`GHS ${Number(data?.totalRevenue ?? 0).toFixed(2)}`} />
