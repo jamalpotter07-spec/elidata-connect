@@ -19,7 +19,20 @@ export const Route = createFileRoute("/api/public/hooks/telegram-setup")({
           return Response.json({ ok: false, error: "TELEGRAM_BOT_TOKEN not configured" }, { status: 500 });
         }
         const u = new URL(request.url);
+
+        // Auth: caller must present the bot token as ?token=… (timing-safe compare).
+        // The bot token is a shared secret only the workspace owner has — without
+        // this gate any internet user could redirect or delete the admin webhook.
+        const provided = u.searchParams.get("token") ?? "";
+        const a = Buffer.from(provided);
+        const b = Buffer.from(token);
+        const { timingSafeEqual } = await import("crypto");
+        if (a.length !== b.length || !timingSafeEqual(a, b)) {
+          return new Response("Unauthorized", { status: 401 });
+        }
+
         const base = `https://api.telegram.org/bot${token}`;
+
 
         if (u.searchParams.get("info")) {
           const r = await fetch(`${base}/getWebhookInfo`);
