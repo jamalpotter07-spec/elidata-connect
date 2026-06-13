@@ -59,6 +59,8 @@ function AdminHome() {
         </div>
       </div>
 
+      <ProfitCalculatorCard />
+
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         <Stat title="Total revenue" value={`GHS ${Number(data?.totalRevenue ?? 0).toFixed(2)}`} />
         <Stat title="Total orders" value={String(data?.totalOrders ?? 0)} />

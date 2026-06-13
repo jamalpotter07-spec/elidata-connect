@@ -16,6 +16,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { fulfill } from "@/lib/reseller.server";
 import { getMobighBalance } from "@/lib/reseller-packages.server";
 import { notifyAdmin } from "@/lib/notify.server";
+import { computePaymentDestinations } from "@/lib/admin.functions";
 
 const HELP = [
   "<b>Manual order commands</b>",
@@ -24,8 +25,16 @@ const HELP = [
   "<code>/order AT 2 0271234567 note</code>",
   "<code>/balance</code>  — Mobigh wholesale balance",
   "<code>/bundles MTN</code>  — list active MTN bundles",
+  "<code>/profit [today|7d|30d|all]</code>  — revenue, cost, profit",
+  "<code>/payments [today|7d|30d|all]</code>  — where money was collected",
   "<code>/help</code>",
 ].join("\n");
+
+function parseRange(arg?: string): "today" | "7d" | "30d" | "all" {
+  const v = (arg ?? "").toLowerCase();
+  if (v === "today" || v === "7d" || v === "30d" || v === "all") return v;
+  return "7d";
+}
 
 function normalizeNetwork(raw: string): "MTN" | "Telecel" | "AT" | null {
   const n = raw.trim().toLowerCase();
