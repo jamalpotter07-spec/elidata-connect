@@ -21,6 +21,28 @@ import { Logo } from "./logo";
 import { useTheme } from "./theme-provider";
 
 /* ─────────────────────────────────────────────────────
+   GLASS CIRCLE BUTTON — shared style for top controls
+───────────────────────────────────────────────────── */
+const glassCircle: React.CSSProperties = {
+  background: "rgba(255, 255, 255, 0.12)",
+  backdropFilter: "blur(20px)",
+  WebkitBackdropFilter: "blur(20px)",
+  border: "1px solid rgba(255,255,255,0.22)",
+  boxShadow: "0 4px 24px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.18)",
+};
+
+/* ─────────────────────────────────────────────────────
+   GLASS PILL — shared style for top pill
+───────────────────────────────────────────────────── */
+const glassPill: React.CSSProperties = {
+  background: "rgba(255, 255, 255, 0.10)",
+  backdropFilter: "blur(20px)",
+  WebkitBackdropFilter: "blur(20px)",
+  border: "1px solid rgba(255,255,255,0.20)",
+  boxShadow: "0 4px 32px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.16)",
+};
+
+/* ─────────────────────────────────────────────────────
    THEME TOGGLE CIRCLE
 ───────────────────────────────────────────────────── */
 function ThemeCircle() {
@@ -30,18 +52,12 @@ function ThemeCircle() {
     <button
       onClick={() => setTheme(next)}
       aria-label={`Switch to ${next} mode`}
-      className="flex h-11 w-11 items-center justify-center rounded-full transition-colors"
-      style={{
-        background: "rgba(15, 20, 40, 0.55)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
-        border: "1px solid rgba(255,255,255,0.10)",
-        boxShadow: "0 4px 32px rgba(0,0,0,0.28)",
-      }}
+      className="flex h-11 w-11 items-center justify-center rounded-full transition-all hover:scale-105"
+      style={glassCircle}
     >
       {resolved === "dark"
-        ? <Sun className="h-4 w-4 text-white" />
-        : <Moon className="h-4 w-4 text-white" />}
+        ? <Sun className="h-[18px] w-[18px] text-white" strokeWidth={2.5} />
+        : <Moon className="h-[18px] w-[18px] text-white" strokeWidth={2.5} />}
     </button>
   );
 }
@@ -77,7 +93,7 @@ function SlidingIndicator() {
   return (
     <div ref={containerRef} className="relative flex items-center gap-1">
       <span
-        className="pointer-events-none absolute inset-y-0 rounded-full bg-white/10 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
+        className="pointer-events-none absolute inset-y-0 rounded-full bg-white/15 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
         style={{ left: style.left, width: style.width, opacity: style.opacity }}
       />
       {desktopLinks.map(({ to, label }, i) => {
@@ -116,40 +132,29 @@ export function NavBar({ hideThemeToggle: _unused = false }: { hideThemeToggle?:
       {/* ── TOP NAV ── */}
       <header className="fixed top-0 inset-x-0 z-50 flex items-center px-4 pt-3 pointer-events-none">
 
-        {/* ── MOBILE: centered pill + right circles ── */}
+        {/* ── MOBILE ── */}
         <div className="flex w-full items-center lg:hidden pointer-events-auto gap-2">
-          {/* Floating glass pill — logo centered */}
+          {/* Floating glass pill — logo centered, compact */}
           <div
             className="flex flex-1 items-center justify-center rounded-full px-4 py-2"
-            style={{
-              background: "rgba(15, 20, 40, 0.55)",
-              backdropFilter: "blur(20px)",
-              WebkitBackdropFilter: "blur(20px)",
-              border: "1px solid rgba(255,255,255,0.10)",
-              boxShadow: "0 4px 32px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.06)",
-            }}
+            style={glassPill}
           >
             <Link to="/" className="flex items-center justify-center">
               <Logo />
             </Link>
           </div>
 
-          {/* Right circles: hamburger + theme */}
+          {/* Right circles */}
           <div className="flex items-center gap-2 shrink-0">
+            {/* Hamburger */}
             <Sheet>
               <SheetTrigger asChild>
                 <button
                   aria-label="Open menu"
-                  className="flex h-11 w-11 items-center justify-center rounded-full"
-                  style={{
-                    background: "rgba(15, 20, 40, 0.55)",
-                    backdropFilter: "blur(20px)",
-                    WebkitBackdropFilter: "blur(20px)",
-                    border: "1px solid rgba(255,255,255,0.10)",
-                    boxShadow: "0 4px 32px rgba(0,0,0,0.28)",
-                  }}
+                  className="flex h-11 w-11 items-center justify-center rounded-full transition-all hover:scale-105"
+                  style={glassCircle}
                 >
-                  <Menu className="h-4 w-4 text-white" />
+                  <Menu className="h-[18px] w-[18px] text-white" strokeWidth={2.5} />
                 </button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[86vw] max-w-sm bg-background/95 backdrop-blur-xl">
@@ -182,21 +187,16 @@ export function NavBar({ hideThemeToggle: _unused = false }: { hideThemeToggle?:
               </SheetContent>
             </Sheet>
 
+            {/* Theme toggle */}
             <ThemeCircle />
           </div>
         </div>
 
-        {/* ── DESKTOP: pill left + theme circle right ── */}
+        {/* ── DESKTOP ── */}
         <div className="hidden lg:flex w-full items-center justify-between pointer-events-auto">
           <div
             className="flex items-center gap-2 rounded-full px-3 py-2 pr-4"
-            style={{
-              background: "rgba(15, 20, 40, 0.55)",
-              backdropFilter: "blur(20px)",
-              WebkitBackdropFilter: "blur(20px)",
-              border: "1px solid rgba(255,255,255,0.10)",
-              boxShadow: "0 4px 32px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.06)",
-            }}
+            style={glassPill}
           >
             <Link to="/" className="shrink-0 mr-2">
               <Logo />
@@ -299,7 +299,7 @@ function BottomNav({
               className="flex flex-col"
               style={{ paddingBottom: "max(24px, env(safe-area-inset-bottom))" }}
             >
-              {/* Slim pill handle only — no square, no "More" label */}
+              {/* Slim pill handle */}
               <div className="flex justify-center pt-3 pb-5">
                 <div className="h-1 w-10 rounded-full bg-gray-200" />
               </div>
