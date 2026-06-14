@@ -26,7 +26,6 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "Eli Data Resales — Cheap data bundles, Ghana" },
     ],
   }),
-
 });
 
 type Bundle = {
@@ -57,7 +56,8 @@ function HomePage() {
   return (
     <>
       <NavBar />
-      <main className="pb-20">
+      {/* pt-20 clears the fixed top nav; pb-24 clears the fixed bottom nav on mobile */}
+      <main className="pt-20 pb-24 lg:pb-10">
         {/* Hero */}
         <section className="relative overflow-hidden border-b">
           <div
