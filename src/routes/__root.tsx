@@ -76,14 +76,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "Eli-data hub" },
+      { name: "description", content: "This application sells cheap MTN, Telecel, and AT data bundles via reseller APIs, with Paystack integration." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "Eli-data hub" },
+      { property: "og:description", content: "This application sells cheap MTN, Telecel, and AT data bundles via reseller APIs, with Paystack integration." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Eli-data hub" },
+      { name: "twitter:description", content: "This application sells cheap MTN, Telecel, and AT data bundles via reseller APIs, with Paystack integration." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/yZoBj2eh2hhaXNnmPxmgEQQkihk1/social-images/social-1781475903863-2026-06-14_22.20.47.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/yZoBj2eh2hhaXNnmPxmgEQQkihk1/social-images/social-1781475903863-2026-06-14_22.20.47.webp" },
     ],
     links: [
       {
