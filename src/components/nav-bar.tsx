@@ -21,43 +21,82 @@ import { Logo } from "./logo";
 import { useTheme } from "./theme-provider";
 
 /* ─────────────────────────────────────────────────────
-   GLASS CIRCLE BUTTON — shared style for top controls
+   ADAPTIVE GLASS STYLES — dark mode = white tint
+                          light mode = dark tint
 ───────────────────────────────────────────────────── */
-const glassCircle: React.CSSProperties = {
-  background: "rgba(255, 255, 255, 0.12)",
-  backdropFilter: "blur(20px)",
-  WebkitBackdropFilter: "blur(20px)",
-  border: "1px solid rgba(255,255,255,0.22)",
-  boxShadow: "0 4px 24px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.18)",
-};
+function useGlassStyles() {
+  const { resolved } = useTheme();
+  const isDark = resolved === "dark";
+
+  const circle: React.CSSProperties = isDark
+    ? {
+        background: "rgba(255, 255, 255, 0.12)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        border: "1px solid rgba(255,255,255,0.22)",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.18)",
+      }
+    : {
+        background: "rgba(15, 20, 50, 0.65)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        border: "1px solid rgba(255,255,255,0.10)",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.30)",
+      };
+
+  const pill: React.CSSProperties = isDark
+    ? {
+        background: "rgba(255, 255, 255, 0.10)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        border: "1px solid rgba(255,255,255,0.20)",
+        boxShadow: "0 4px 32px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.14)",
+      }
+    : {
+        background: "rgba(15, 20, 50, 0.70)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        border: "1px solid rgba(255,255,255,0.10)",
+        boxShadow: "0 4px 32px rgba(0,0,0,0.28)",
+      };
+
+  return { circle, pill };
+}
 
 /* ─────────────────────────────────────────────────────
-   GLASS PILL — shared style for top pill
-───────────────────────────────────────────────────── */
-const glassPill: React.CSSProperties = {
-  background: "rgba(255, 255, 255, 0.10)",
-  backdropFilter: "blur(20px)",
-  WebkitBackdropFilter: "blur(20px)",
-  border: "1px solid rgba(255,255,255,0.20)",
-  boxShadow: "0 4px 32px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.16)",
-};
-
-/* ─────────────────────────────────────────────────────
-   THEME TOGGLE CIRCLE
+   THEME TOGGLE — used inside sheet on mobile,
+                  circle on desktop
 ───────────────────────────────────────────────────── */
 function ThemeCircle() {
   const { resolved, setTheme } = useTheme();
+  const { circle } = useGlassStyles();
   const next = resolved === "dark" ? "light" : "dark";
   return (
     <button
       onClick={() => setTheme(next)}
       aria-label={`Switch to ${next} mode`}
-      className="flex h-11 w-11 items-center justify-center rounded-full transition-all hover:scale-105"
-      style={glassCircle}
+      className="flex h-11 w-11 items-center justify-center rounded-full transition-all hover:scale-105 shrink-0"
+      style={circle}
     >
       {resolved === "dark"
         ? <Sun className="h-[18px] w-[18px] text-white" strokeWidth={2.5} />
         : <Moon className="h-[18px] w-[18px] text-white" strokeWidth={2.5} />}
+    </button>
+  );
+}
+
+function ThemeSheetRow() {
+  const { resolved, setTheme } = useTheme();
+  const next = resolved === "dark" ? "light" : "dark";
+  return (
+    <button
+      onClick={() => setTheme(next)}
+      className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition hover:bg-accent w-full text-left"
+    >
+      {resolved === "dark"
+        ? <Sun className="h-4 w-4 shrink-0" />
+        : <Moon className="h-4 w-4 shrink-0" />}
+      {resolved === "dark" ? "Light mode" : "Dark mode"}
     </button>
   );
 }
@@ -74,6 +113,7 @@ const desktopLinks = [
 
 function SlidingIndicator() {
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const { resolved } = useTheme();
   const refs = useRef<(HTMLAnchorElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const [style, setStyle] = useState({ left: 0, width: 0, opacity: 0 });
@@ -90,6 +130,9 @@ function SlidingIndicator() {
     setStyle({ left: elRect.left - conRect.left, width: elRect.width, opacity: 1 });
   }, [path]);
 
+  const activeColor = "text-white";
+  const inactiveColor = "text-white/60 hover:text-white/90";
+
   return (
     <div ref={containerRef} className="relative flex items-center gap-1">
       <span
@@ -104,7 +147,7 @@ function SlidingIndicator() {
             to={to}
             ref={(el) => { refs.current[i] = el; }}
             className={`relative z-10 rounded-full px-4 py-2 text-sm font-medium transition-colors duration-200 ${
-              active ? "text-white" : "text-white/60 hover:text-white/90"
+              active ? activeColor : inactiveColor
             }`}
           >
             {label}
@@ -121,6 +164,7 @@ function SlidingIndicator() {
 export function NavBar({ hideThemeToggle: _unused = false }: { hideThemeToggle?: boolean } = {}) {
   const { user, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
+  const { pill, circle } = useGlassStyles();
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -130,80 +174,91 @@ export function NavBar({ hideThemeToggle: _unused = false }: { hideThemeToggle?:
   return (
     <>
       {/* ── TOP NAV ── */}
-      <header className="fixed top-0 inset-x-0 z-50 flex items-center px-4 pt-3 pointer-events-none">
+      <header className="fixed top-0 inset-x-0 z-50 px-4 pt-3 pointer-events-none">
 
-        {/* ── MOBILE ── */}
+        {/* ── MOBILE: centered pill + hamburger circle right ── */}
         <div className="flex w-full items-center lg:hidden pointer-events-auto gap-2">
-          {/* Floating glass pill — logo centered, compact */}
+          {/* Centered pill — 40% shorter padding, 34% taller */}
           <div
-            className="flex flex-1 items-center justify-center rounded-full px-4 py-2"
-            style={glassPill}
+            className="flex flex-1 items-center justify-center rounded-full"
+            style={{
+              ...pill,
+              paddingTop: "10px",
+              paddingBottom: "10px",
+              paddingLeft: "14px",
+              paddingRight: "14px",
+            }}
           >
             <Link to="/" className="flex items-center justify-center">
               <Logo />
             </Link>
           </div>
 
-          {/* Right circles */}
-          <div className="flex items-center gap-2 shrink-0">
-            {/* Hamburger */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <button
-                  aria-label="Open menu"
-                  className="flex h-11 w-11 items-center justify-center rounded-full transition-all hover:scale-105"
-                  style={glassCircle}
-                >
-                  <Menu className="h-[18px] w-[18px] text-white" strokeWidth={2.5} />
-                </button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[86vw] max-w-sm bg-background/95 backdrop-blur-xl">
-                <div className="mt-8 flex flex-col gap-2">
-                  <MobileSheetLink to="/" label="Home" exact />
-                  <MobileSheetLink to="/buy" label="Buy bundles" />
-                  <MobileSheetLink to="/about" label="About" />
-                  {!loading && user ? (
-                    <>
-                      <MobileSheetLink to="/dashboard" label="Dashboard" />
-                      <MobileSheetLink to="/orders" label="My orders" />
-                      {isAdmin && <MobileSheetLink to="/admin/bundles" label="Admin" brand />}
-                      <div className="mt-2 border-t pt-2">
-                        <button
-                          onClick={signOut}
-                          className="w-full rounded-lg px-3 py-3 text-left text-sm font-medium text-destructive transition hover:bg-accent"
-                        >
-                          Sign out
-                        </button>
-                      </div>
-                    </>
-                  ) : !loading ? (
-                    <>
-                      <div className="mt-2 border-t pt-2" />
-                      <MobileSheetLink to="/login" label="Log in" />
-                      <MobileSheetLink to="/signup" label="Sign up" brand />
-                    </>
-                  ) : null}
-                </div>
-              </SheetContent>
-            </Sheet>
+          {/* Hamburger circle only — theme moved into sheet */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <button
+                aria-label="Open menu"
+                className="flex h-11 w-11 items-center justify-center rounded-full transition-all hover:scale-105 shrink-0"
+                style={circle}
+              >
+                <Menu className="h-[18px] w-[18px] text-white" strokeWidth={2.5} />
+              </button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[86vw] max-w-sm bg-background/95 backdrop-blur-xl">
+              <div className="mt-8 flex flex-col gap-2">
+                <MobileSheetLink to="/" label="Home" exact />
+                <MobileSheetLink to="/buy" label="Buy bundles" />
+                <MobileSheetLink to="/about" label="About" />
+                {!loading && user ? (
+                  <>
+                    <MobileSheetLink to="/dashboard" label="Dashboard" />
+                    <MobileSheetLink to="/orders" label="My orders" />
+                    {isAdmin && <MobileSheetLink to="/admin/bundles" label="Admin" brand />}
+                  </>
+                ) : !loading ? (
+                  <>
+                    <MobileSheetLink to="/login" label="Log in" />
+                    <MobileSheetLink to="/signup" label="Sign up" brand />
+                  </>
+                ) : null}
 
-            {/* Theme toggle */}
-            <ThemeCircle />
-          </div>
+                {/* Theme toggle in sheet */}
+                <div className="mt-2 border-t pt-2">
+                  <ThemeSheetRow />
+                </div>
+
+                {/* Sign out at bottom if logged in */}
+                {!loading && user && (
+                  <button
+                    onClick={signOut}
+                    className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-destructive transition hover:bg-accent w-full text-left"
+                  >
+                    <LogOut className="h-4 w-4 shrink-0" /> Sign out
+                  </button>
+                )}
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
 
-        {/* ── DESKTOP ── */}
-        <div className="hidden lg:flex w-full items-center justify-between pointer-events-auto">
+        {/* ── DESKTOP: centered pill + theme circle right ── */}
+        <div className="hidden lg:flex w-full items-center justify-center relative pointer-events-auto">
+          {/* Centered pill */}
           <div
-            className="flex items-center gap-2 rounded-full px-3 py-2 pr-4"
-            style={glassPill}
+            className="flex items-center gap-2 rounded-full px-4 py-2.5"
+            style={pill}
           >
             <Link to="/" className="shrink-0 mr-2">
               <Logo />
             </Link>
             <SlidingIndicator />
           </div>
-          <ThemeCircle />
+
+          {/* Theme circle — absolute right so pill stays centered */}
+          <div className="absolute right-0">
+            <ThemeCircle />
+          </div>
         </div>
       </header>
 
@@ -276,7 +331,7 @@ function BottomNav({
         {/* Menu tab */}
         <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
           <SheetTrigger asChild>
-            <button className="flex flex-col items-center gap-1 px-4 py-1 min-w-[56px] transition-colors duration-150">
+            <button className="flex flex-col items-center gap-1 px-4 py-1 min-w-[56px]">
               <MoreHorizontal
                 className="h-5 w-5 transition-colors duration-150"
                 style={{ color: menuOpen ? "#0f1428" : "#9ca3af" }}
@@ -413,7 +468,7 @@ function MobileSheetLink({
   exact?: boolean;
   brand?: boolean;
 }) {
-  const base = "rounded-lg px-3 py-3 text-sm font-medium transition hover:bg-accent";
+  const base = "rounded-lg px-3 py-3 text-sm font-medium transition hover:bg-accent block";
   const brandCls = brand ? "text-brand" : "";
   return (
     <Link
