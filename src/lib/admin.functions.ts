@@ -296,6 +296,12 @@ export const adminRetryDelivery = createServerFn({ method: "POST" })
         .update({ status: "delivered", reseller_reference: result.reference })
         .eq("id", order.id);
       await notifyAdmin(`🔁 <b>Retry delivered</b> ${order.network} → ${order.recipient_phone}`);
+      await deliveredSms({
+        phone: order.recipient_phone,
+        network: order.network,
+        dataMb: order.data_mb,
+        orderId: order.id,
+      });
       return { ok: true, status: "delivered" as const };
     }
     await supabaseAdmin.from("orders")
