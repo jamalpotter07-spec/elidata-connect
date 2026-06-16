@@ -24,7 +24,7 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "Eli Data Resales — Cheap data bundles, Ghana" },
     ],
   }),
-}));
+});
 
 const NETWORKS = [
   { id: "MTN" as const,     label: "MTN",        color: "#FFCC00", textColor: "#1a1200" },
