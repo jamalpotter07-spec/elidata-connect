@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { fulfill } from "./reseller.server";
 import { notifyAdmin } from "./notify.server";
+import { deliveredSms } from "./sms.server";
 import { listMobighPackages, getMobighBalance, mobighNetCode } from "./reseller-packages.server";
 
 async function assertAdmin(userId: string) {
@@ -295,6 +296,12 @@ export const adminRetryDelivery = createServerFn({ method: "POST" })
         .update({ status: "delivered", reseller_reference: result.reference })
         .eq("id", order.id);
       await notifyAdmin(`🔁 <b>Retry delivered</b> ${order.network} → ${order.recipient_phone}`);
+      await deliveredSms({
+        phone: order.recipient_phone,
+        network: order.network,
+        dataMb: order.data_mb,
+        orderId: order.id,
+      });
       return { ok: true, status: "delivered" as const };
     }
     await supabaseAdmin.from("orders")
@@ -550,6 +557,12 @@ export const adminManualOrder = createServerFn({ method: "POST" })
         .update({ status: "delivered", reseller_reference: result.reference })
         .eq("id", order.id);
       await notifyAdmin(`✋ <b>Manual order delivered</b> ${bundle.network} ${bundle.name} → ${data.recipientPhone}`);
+      await deliveredSms({
+        phone: data.recipientPhone,
+        network: bundle.network,
+        dataMb: bundle.data_mb,
+        orderId: order.id,
+      });
       return { ok: true, orderId: order.id, status: "delivered" as const };
     }
 
