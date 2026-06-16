@@ -33,17 +33,55 @@ export const adminStats = createServerFn({ method: "GET" })
     return { totalRevenue, counts, totalOrders: orders?.length ?? 0 };
   });
 
+// ---------------------------------------------------------------------------
+// #9 FIX — cursor-based pagination replacing the hard 200-row limit.
+// Pass `cursor` (a created_at ISO string) to fetch the next page.
+// Returns `nextCursor` so the UI can request subsequent pages, plus
+// `truncated: true` when the caller omitted a cursor AND there are more rows,
+// so the admin sees a visible warning rather than silent data loss.
+// ---------------------------------------------------------------------------
 export const adminListOrders = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((input) =>
+    z
+      .object({
+        cursor: z.string().datetime().optional(), // created_at of last row on previous page
+        pageSize: z.number().int().min(1).max(200).default(100),
+      })
+      .optional()
+      .transform((v) => v ?? {}),
+  )
+  .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const { data, error } = await supabaseAdmin
+    const pageSize = (data as any).pageSize ?? 100;
+    const cursor   = (data as any).cursor as string | undefined;
+
+    let q = supabaseAdmin
       .from("orders")
       .select("*")
       .order("created_at", { ascending: false })
-      .limit(200);
+      .limit(pageSize + 1); // fetch one extra to detect if there's a next page
+
+    if (cursor) {
+      q = q.lt("created_at", cursor);
+    }
+
+    const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
-    return { orders: data ?? [] };
+
+    const hasMore = (rows?.length ?? 0) > pageSize;
+    const orders  = hasMore ? rows!.slice(0, pageSize) : (rows ?? []);
+    const nextCursor = hasMore
+      ? orders[orders.length - 1].created_at
+      : null;
+
+    return {
+      orders,
+      nextCursor,
+      // Warn the UI when this is the first page and it's already full —
+      // older orders exist but weren't requested yet.
+      truncated: !cursor && hasMore,
+    };
   });
 
 export const adminListBundles = createServerFn({ method: "GET" })
@@ -101,10 +139,6 @@ export const adminDeleteBundle = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-// Reset-based bulk price adjuster.
-// Always recomputes sell price from the API cost: sell = cost * (1 + percent/100).
-// Re-running with the SAME percent gives the SAME result — it never compounds.
-// E.g. percent=20 → every sell price becomes 1.20× its cost, every time you click Apply.
 export const adminBulkAdjustPrices = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
@@ -131,7 +165,6 @@ export const adminBulkAdjustPrices = createServerFn({ method: "POST" })
     }
     return { ok: true, updated, skipped };
   });
-
 
 export const adminListUsers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -234,8 +267,6 @@ export const adminUpdateOrder = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-// "Preorder with own funds" — admin pays the bill on behalf of the customer
-// when Paystack is unavailable. Records a payment row tagged 'manual-admin'.
 export const adminMarkPaidManual = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
@@ -272,7 +303,6 @@ export const adminMarkPaidManual = createServerFn({ method: "POST" })
     return { ok: true, reference };
   });
 
-// Re-attempt delivery via reseller API (use after a failed delivery or stuck order).
 export const adminRetryDelivery = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ orderId: z.string().uuid() }).parse(input))
@@ -310,7 +340,6 @@ export const adminRetryDelivery = createServerFn({ method: "POST" })
     return { ok: false, status: "failed" as const, error: result.error };
   });
 
-// Mark an order as refunded (records the action; actual money movement is manual).
 export const adminRefundOrder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
@@ -336,7 +365,6 @@ export const adminRefundOrder = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-// Sync wholesale prices from Mobigh /packages and recompute sell prices at the given margin.
 export const adminSyncMobighPrices = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
@@ -353,7 +381,6 @@ export const adminSyncMobighPrices = createServerFn({ method: "POST" })
     let skipped = 0;
     for (const b of bundles ?? []) {
       const code = mobighNetCode(b.network);
-      // Match by GB rounded to 1 decimal (our MB is 1024-based, Mobigh's volume is 1000-based).
       const ourGb = Math.round((b.data_mb / 1024) * 10) / 10;
       const match = packages.find(
         (p) => p.network === code && Math.round((p.volume / 1000) * 10) / 10 === ourGb,
@@ -379,8 +406,14 @@ export const adminMobighBalance = createServerFn({ method: "GET" })
     return { balance };
   });
 
-// Profit calculator — per-sale revenue/cost/profit + totals for a date range.
-// Counts only fulfilled sales (paid + delivered). Refunded orders are excluded.
+// ---------------------------------------------------------------------------
+// #8 FIX — Profit report now subtracts refunds from revenue.
+// Previously filtered to ["paid", "delivered"] which overstated revenue for
+// orders that were later refunded — Mobigh data was consumed at real cost but
+// the negative-amount refund payment row was never subtracted.
+// Now: fetch all order IDs in range, join their payments, sum positives
+// (revenue) and negatives (refunds) separately, then net off.
+// ---------------------------------------------------------------------------
 export const adminProfitReport = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
@@ -396,15 +429,18 @@ export const adminProfitReport = createServerFn({ method: "POST" })
       data.range === "7d"    ? now - 7  * 24 * 60 * 60 * 1000 :
       data.range === "30d"   ? now - 30 * 24 * 60 * 60 * 1000 :
       0;
+
+    // Pull delivered + refunded orders so we can account for both.
     let q = supabaseAdmin
       .from("orders")
       .select("id, created_at, network, data_mb, recipient_phone, amount_ghs, status, bundle_id")
-      .in("status", ["paid", "delivered"])
+      .in("status", ["paid", "delivered", "refunded"])
       .order("created_at", { ascending: false });
     if (sinceMs > 0) q = q.gte("created_at", new Date(sinceMs).toISOString());
     const { data: orders, error } = await q;
     if (error) throw new Error(error.message);
 
+    // Bundle cost map
     const bundleIds = Array.from(new Set((orders ?? []).map((o) => o.bundle_id).filter(Boolean)));
     const bundleMap = new Map<string, { name: string; cost: number }>();
     if (bundleIds.length) {
@@ -415,13 +451,40 @@ export const adminProfitReport = createServerFn({ method: "POST" })
       }
     }
 
-    let revenue = 0, cost = 0;
+    // Fetch all payment rows for these orders so we can sum refunds accurately.
+    // Refund rows have a negative amount_ghs and provider === "refund".
+    const orderIds = (orders ?? []).map((o) => o.id);
+    const refundMap = new Map<string, number>(); // order_id → total refunded (positive number)
+    if (orderIds.length) {
+      const { data: payments } = await supabaseAdmin
+        .from("payments")
+        .select("order_id, amount_ghs, provider")
+        .in("order_id", orderIds)
+        .eq("status", "success");
+      for (const p of payments ?? []) {
+        const amt = Number(p.amount_ghs);
+        if (amt < 0) {
+          // Negative amount = refund. Store as a positive value for subtraction.
+          const prev = refundMap.get(p.order_id as string) ?? 0;
+          refundMap.set(p.order_id as string, prev + Math.abs(amt));
+        }
+      }
+    }
+
+    let grossRevenue = 0;
+    let totalRefunds = 0;
+    let cost = 0;
+
     const sales = (orders ?? []).map((o) => {
       const b = bundleMap.get(o.bundle_id as string);
-      const rev = Number(o.amount_ghs);
-      const c = b?.cost ?? 0;
-      revenue += rev;
+      const rev   = Number(o.amount_ghs);
+      const c     = o.status === "refunded" ? 0 : (b?.cost ?? 0); // cost only incurred if delivered
+      const refund = refundMap.get(o.id) ?? 0;
+
+      grossRevenue += rev;
+      totalRefunds += refund;
       cost += c;
+
       return {
         id: o.id,
         created_at: o.created_at,
@@ -431,19 +494,28 @@ export const adminProfitReport = createServerFn({ method: "POST" })
         status: o.status,
         bundle_name: b?.name ?? null,
         revenue: rev,
+        refund,
         cost: c,
-        profit: rev - c,
+        profit: rev - refund - c,
       };
     });
 
+    const netRevenue = grossRevenue - totalRefunds;
+
     return {
-      totals: { revenue, cost, profit: revenue - cost, sales: sales.length },
+      totals: {
+        grossRevenue,
+        refunds: totalRefunds,
+        netRevenue,
+        cost,
+        profit: netRevenue - cost,
+        sales: sales.length,
+      },
       sales,
     };
   });
 
-// Payment destinations summary — where money landed grouped by provider.
-// Used by the /payments Telegram command and admin dashboard.
+// Payment destinations summary
 export const adminPaymentDestinations = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
@@ -499,8 +571,6 @@ function destinationFor(provider: string): string {
   return provider;
 }
 
-// Manual order fulfillment — admin processes an order for an offline customer (DM/WhatsApp).
-// Creates an order, marks it paid (manual), calls Mobigh purchase, and records the result.
 export const adminManualOrder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
@@ -517,7 +587,6 @@ export const adminManualOrder = createServerFn({ method: "POST" })
       .from("bundles").select("*").eq("id", data.bundleId).single();
     if (bErr || !bundle) throw new Error("Bundle not found");
 
-    // Create the order (owned by the admin running the action).
     const reference = `MANUAL-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
     const { data: order, error: oErr } = await supabaseAdmin
       .from("orders")
@@ -571,6 +640,3 @@ export const adminManualOrder = createServerFn({ method: "POST" })
     await notifyAdmin(`✋❌ <b>Manual order failed</b> ${bundle.network} ${bundle.name} → ${data.recipientPhone}\n${result.error}`);
     return { ok: false, orderId: order.id, status: "failed" as const, error: result.error };
   });
-
-
-

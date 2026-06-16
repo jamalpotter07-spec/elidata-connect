@@ -77,4 +77,23 @@ export default {
       return brandedErrorResponse();
     }
   },
+
+  // Cloudflare Cron Trigger — fires on the schedule defined in wrangler.jsonc.
+  // Calls the retry-failed hook so failed Mobigh deliveries are retried every
+  // 5 minutes without manual admin intervention.
+  async scheduled(_event: unknown, env: Record<string, string>, _ctx: unknown) {
+    const baseUrl  = env.WORKER_URL ?? "http://localhost:3000";
+    const secret   = env.CRON_SECRET ?? "";
+    try {
+      await fetch(`${baseUrl}/api/public/hooks/retry-failed`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-cron-secret": secret,
+        },
+      });
+    } catch (e) {
+      console.error("Cron retry-failed fetch failed:", e);
+    }
+  },
 };
