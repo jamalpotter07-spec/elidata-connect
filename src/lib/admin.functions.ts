@@ -557,6 +557,12 @@ export const adminManualOrder = createServerFn({ method: "POST" })
         .update({ status: "delivered", reseller_reference: result.reference })
         .eq("id", order.id);
       await notifyAdmin(`✋ <b>Manual order delivered</b> ${bundle.network} ${bundle.name} → ${data.recipientPhone}`);
+      await deliveredSms({
+        phone: data.recipientPhone,
+        network: bundle.network,
+        dataMb: bundle.data_mb,
+        orderId: order.id,
+      });
       return { ok: true, orderId: order.id, status: "delivered" as const };
     }
 
