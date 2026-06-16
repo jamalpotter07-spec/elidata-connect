@@ -222,18 +222,12 @@ export const Route = createFileRoute("/api/public/hooks/telegram")({
             }
 
             const reference = `TG-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-            // We need a user_id (orders.user_id is NOT NULL). Use the first admin.
-            const { data: admin } = await supabaseAdmin
-              .from("user_roles").select("user_id").eq("role", "admin").limit(1).maybeSingle();
-            if (!admin) {
-              await reply(chatId, "No admin user in DB to attribute the order to.");
-              return new Response("ok");
-            }
-
+            // user_id is nullable in the schema — Telegram bot orders have no associated
+            // user account, so we pass null rather than fragily depending on an admin row.
             const { data: order, error: oErr } = await supabaseAdmin
               .from("orders")
               .insert({
-                user_id: admin.user_id,
+                user_id: null,
                 bundle_id: bundle.id,
                 network: bundle.network,
                 data_mb: bundle.data_mb,

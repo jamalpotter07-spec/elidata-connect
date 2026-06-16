@@ -9,13 +9,13 @@ import { Label }   from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info, X, Zap } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
-import { createOrder }   from "@/lib/orders.functions";
-import { payAndFulfill } from "@/lib/checkout.functions";
-import { toast }          from "sonner";
-import { useNavigate }    from "@tanstack/react-router";
-import { NetworkBadge }   from "./status-badge";
-import { useAuth }        from "@/hooks/use-auth";
-import { useSavedPhones } from "@/hooks/use-saved-phones";
+import { createOrder }               from "@/lib/orders.functions";
+import { createPaystackTransaction } from "@/lib/checkout.functions";
+import { toast }                      from "sonner";
+import { useNavigate }                from "@tanstack/react-router";
+import { NetworkBadge }               from "./status-badge";
+import { useAuth }                    from "@/hooks/use-auth";
+import { useSavedPhones }             from "@/hooks/use-saved-phones";
 
 type Bundle = {
   id: string; network: string; name: string;
@@ -29,9 +29,10 @@ export function CheckoutDialog({
 }) {
   const { user } = useAuth();
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [busy,  setBusy]  = useState(false);
   const create   = useServerFn(createOrder);
-  const pay      = useServerFn(payAndFulfill);
+  const initPay  = useServerFn(createPaystackTransaction);
   const navigate = useNavigate();
   const { phones, remember, forget } = useSavedPhones();
 
@@ -48,15 +49,29 @@ export function CheckoutDialog({
     }
     setBusy(true);
     try {
-      const { orderId } = await create({ data: { bundleId: bundle.id, recipientPhone: phone.trim() } });
+      // Step 1: create the order row (still pending, no payment yet)
+      const { orderId } = await create({
+        data: { bundleId: bundle.id, recipientPhone: phone.trim() },
+      });
       remember(phone.trim());
-      pay({ data: { orderId } }).catch(() => {});
-      toast.success("Order received — taking you to live tracking");
+
+      // Step 2: initialize Paystack — stores reference on order BEFORE redirect
+      const callbackUrl = `${window.location.origin}/track/${orderId}`;
+      const payResult = await initPay({
+        data: {
+          orderId,
+          email: email.trim() || (user?.email ?? ""),
+          callbackUrl,
+        },
+      });
+
+      // Step 3: redirect to Paystack hosted checkout page
       onOpenChange(false);
       setPhone("");
-      navigate({ to: user ? "/orders/$orderId" : "/track/$orderId", params: { orderId } });
+      setEmail("");
+      window.location.href = payResult.authorizationUrl;
     } catch (e: any) {
-      toast.error(e?.message ?? "Checkout failed");
+      toast.error(e?.message ?? "Checkout failed — please try again");
     } finally {
       setBusy(false);
     }
@@ -98,7 +113,8 @@ export function CheckoutDialog({
           >
             <Info className="h-4 w-4 mt-0.5 shrink-0" style={{ color: "#00ffff" }} />
             <p className="text-xs text-white/70 leading-relaxed">
-              No account needed. We'll send the data directly to the number below.
+              You&apos;ll be redirected to Paystack to complete payment securely.
+              Your data will be delivered automatically after payment confirmation.
             </p>
           </div>
 
@@ -150,6 +166,29 @@ export function CheckoutDialog({
             )}
           </div>
 
+          {/* Email input — required by Paystack for receipts */}
+          {!user?.email && (
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-xs font-semibold text-white/60 uppercase tracking-wider">
+                Email <span className="text-white/30 font-normal normal-case">(for payment receipt)</span>
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                className="rounded-xl text-white placeholder:text-white/30"
+                style={{
+                  background: "rgba(255,255,255,0.06)",
+                  border:     "1px solid rgba(255,255,255,0.10)",
+                  color:      "#ffffff",
+                }}
+              />
+            </div>
+          )}
+
           <DialogFooter className="gap-2 pt-1">
             <Button
               variant="outline" onClick={() => onOpenChange(false)} disabled={busy}
@@ -165,7 +204,7 @@ export function CheckoutDialog({
             >
               <Zap className="h-4 w-4 relative z-10" />
               <span className="relative z-10">
-                {busy ? "Placing order…" : `Pay GHS ${Number(bundle.price_ghs).toFixed(2)}`}
+                {busy ? "Preparing payment…" : `Pay GHS ${Number(bundle.price_ghs).toFixed(2)}`}
               </span>
             </button>
           </DialogFooter>

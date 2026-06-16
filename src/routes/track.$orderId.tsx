@@ -54,6 +54,11 @@ function TrackPage() {
     return () => clearInterval(t);
   }, [order]);
 
+  // Show a support nudge if the order is still pending after 30 seconds.
+  // Catches incomplete Paystack redirects or delayed webhooks so the customer
+  // has a clear action path rather than a spinner with no feedback.
+  const showSupportNudge = status === "pending" && elapsed >= 30;
+
   return (
     <>
       <NavBar />
@@ -173,6 +178,29 @@ function TrackPage() {
                       <div className="h-full w-1/3 animate-[shimmer_1.4s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-[hsl(var(--brand-navy))] via-[hsl(var(--brand-orange))] to-[hsl(var(--brand-navy))]" />
                     </div>
                     <style>{`@keyframes shimmer { 0% { transform: translateX(-100%);} 100% { transform: translateX(400%);} }`}</style>
+
+                    {/* 30-second support nudge — shown when payment hasn't been confirmed yet.
+                        Covers the case where the Paystack redirect never completed or the
+                        webhook is delayed, so the customer has a clear action path. */}
+                    {showSupportNudge && (
+                      <div className="mt-2 rounded-md border border-amber-500/30 bg-amber-500/5 p-3 space-y-1.5">
+                        <p className="text-xs font-medium text-amber-600 dark:text-amber-400">
+                          Still waiting? Your payment may not have been confirmed yet.
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          If you completed payment on Paystack, please wait another minute — confirmations can be delayed.
+                          If you did not complete payment, you can start a new order.
+                        </p>
+                        <Button asChild size="sm" variant="outline" className="h-7 text-xs">
+                          <a
+                            href={`https://wa.me/233500843914?text=${encodeURIComponent(`Hi, my order ${order.id.slice(0, 8)} is still pending after 30 seconds. Can you help?`)}`}
+                            target="_blank" rel="noreferrer"
+                          >
+                            <MessageCircle className="h-3 w-3 mr-1" /> Contact support
+                          </a>
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 )}
 
