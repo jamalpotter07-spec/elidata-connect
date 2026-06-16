@@ -268,6 +268,12 @@ export const Route = createFileRoute("/api/public/hooks/telegram")({
               await supabaseAdmin.from("orders")
                 .update({ status: "delivered", reseller_reference: result.reference })
                 .eq("id", order.id);
+              await deliveredSms({
+                phone,
+                network: bundle.network,
+                dataMb: bundle.data_mb,
+                orderId: order.id,
+              });
               await reply(chatId, `✅ <b>Delivered</b>\n${net} ${gb}GB → ${phone}\nGHS ${Number(bundle.price_ghs).toFixed(2)}\nRef: <code>${result.reference}</code>`);
             } else {
               await supabaseAdmin.from("orders")
