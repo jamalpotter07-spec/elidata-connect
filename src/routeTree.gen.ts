@@ -27,6 +27,7 @@ import { Route as AuthenticatedAdminAdminIndexRouteImport } from './routes/_auth
 import { Route as ApiPublicHooksTelegramSetupRouteImport } from './routes/api/public/hooks/telegram-setup'
 import { Route as ApiPublicHooksTelegramRouteImport } from './routes/api/public/hooks/telegram'
 import { Route as ApiPublicHooksPaystackRouteImport } from './routes/api/public/hooks/paystack'
+import { Route as ApiPublicHooksRetryFailedRouteImport } from './routes/api/public/hooks/retry-failed'
 import { Route as ApiPublicHooksDailyProfitRouteImport } from './routes/api/public/hooks/daily-profit'
 import { Route as ApiPublicHooksBalanceCheckRouteImport } from './routes/api/public/hooks/balance-check'
 import { Route as AuthenticatedAdminAdminUsersRouteImport } from './routes/_authenticated/_admin/admin.users'
@@ -125,6 +126,12 @@ const ApiPublicHooksPaystackRoute = ApiPublicHooksPaystackRouteImport.update({
   path: '/api/public/hooks/paystack',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksRetryFailedRoute =
+  ApiPublicHooksRetryFailedRouteImport.update({
+    id: '/api/public/hooks/retry-failed',
+    path: '/api/public/hooks/retry-failed',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksDailyProfitRoute =
   ApiPublicHooksDailyProfitRouteImport.update({
     id: '/api/public/hooks/daily-profit',
@@ -181,6 +188,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/balance-check': typeof ApiPublicHooksBalanceCheckRoute
   '/api/public/hooks/daily-profit': typeof ApiPublicHooksDailyProfitRoute
   '/api/public/hooks/paystack': typeof ApiPublicHooksPaystackRoute
+  '/api/public/hooks/retry-failed': typeof ApiPublicHooksRetryFailedRoute
   '/api/public/hooks/telegram': typeof ApiPublicHooksTelegramRoute
   '/api/public/hooks/telegram-setup': typeof ApiPublicHooksTelegramSetupRoute
   '/admin/': typeof AuthenticatedAdminAdminIndexRoute
@@ -205,6 +213,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/balance-check': typeof ApiPublicHooksBalanceCheckRoute
   '/api/public/hooks/daily-profit': typeof ApiPublicHooksDailyProfitRoute
   '/api/public/hooks/paystack': typeof ApiPublicHooksPaystackRoute
+  '/api/public/hooks/retry-failed': typeof ApiPublicHooksRetryFailedRoute
   '/api/public/hooks/telegram': typeof ApiPublicHooksTelegramRoute
   '/api/public/hooks/telegram-setup': typeof ApiPublicHooksTelegramSetupRoute
   '/admin': typeof AuthenticatedAdminAdminIndexRoute
@@ -232,6 +241,7 @@ export interface FileRoutesById {
   '/api/public/hooks/balance-check': typeof ApiPublicHooksBalanceCheckRoute
   '/api/public/hooks/daily-profit': typeof ApiPublicHooksDailyProfitRoute
   '/api/public/hooks/paystack': typeof ApiPublicHooksPaystackRoute
+  '/api/public/hooks/retry-failed': typeof ApiPublicHooksRetryFailedRoute
   '/api/public/hooks/telegram': typeof ApiPublicHooksTelegramRoute
   '/api/public/hooks/telegram-setup': typeof ApiPublicHooksTelegramSetupRoute
   '/_authenticated/_admin/admin/': typeof AuthenticatedAdminAdminIndexRoute
@@ -258,6 +268,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/balance-check'
     | '/api/public/hooks/daily-profit'
     | '/api/public/hooks/paystack'
+    | '/api/public/hooks/retry-failed'
     | '/api/public/hooks/telegram'
     | '/api/public/hooks/telegram-setup'
     | '/admin/'
@@ -308,6 +319,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/balance-check'
     | '/api/public/hooks/daily-profit'
     | '/api/public/hooks/paystack'
+    | '/api/public/hooks/retry-failed'
     | '/api/public/hooks/telegram'
     | '/api/public/hooks/telegram-setup'
     | '/_authenticated/_admin/admin/'
@@ -328,6 +340,7 @@ export interface RootRouteChildren {
   ApiPublicHooksBalanceCheckRoute: typeof ApiPublicHooksBalanceCheckRoute
   ApiPublicHooksDailyProfitRoute: typeof ApiPublicHooksDailyProfitRoute
   ApiPublicHooksPaystackRoute: typeof ApiPublicHooksPaystackRoute
+  ApiPublicHooksRetryFailedRoute: typeof ApiPublicHooksRetryFailedRoute
   ApiPublicHooksTelegramRoute: typeof ApiPublicHooksTelegramRoute
   ApiPublicHooksTelegramSetupRoute: typeof ApiPublicHooksTelegramSetupRoute
 }
@@ -460,6 +473,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksPaystackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/retry-failed': {
+      id: '/api/public/hooks/retry-failed'
+      path: '/api/public/hooks/retry-failed'
+      fullPath: '/api/public/hooks/retry-failed'
+      preLoaderRoute: typeof ApiPublicHooksRetryFailedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/daily-profit': {
       id: '/api/public/hooks/daily-profit'
       path: '/api/public/hooks/daily-profit'
@@ -566,6 +586,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksBalanceCheckRoute: ApiPublicHooksBalanceCheckRoute,
   ApiPublicHooksDailyProfitRoute: ApiPublicHooksDailyProfitRoute,
   ApiPublicHooksPaystackRoute: ApiPublicHooksPaystackRoute,
+  ApiPublicHooksRetryFailedRoute: ApiPublicHooksRetryFailedRoute,
   ApiPublicHooksTelegramRoute: ApiPublicHooksTelegramRoute,
   ApiPublicHooksTelegramSetupRoute: ApiPublicHooksTelegramSetupRoute,
 }
