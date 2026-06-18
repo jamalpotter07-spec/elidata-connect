@@ -260,12 +260,12 @@ function BottomNav({
             >
               <Icon
                 className="h-5 w-5 transition-colors duration-150"
-                style={{ color: active ? "#0066ff" : "#9ca3af" }}
+                style={{ color: active ? "#e65100" : "#9ca3af" }}
                 strokeWidth={active ? 2.2 : 1.8}
               />
               <span
                 className="text-[10px] font-medium tracking-wide transition-colors duration-150"
-                style={{ color: active ? "#0066ff" : "#9ca3af" }}
+                style={{ color: active ? "#e65100" : "#9ca3af" }}
               >
                 {label}
               </span>
@@ -278,12 +278,12 @@ function BottomNav({
             <button className="flex flex-col items-center gap-1 px-4 py-1 min-w-[56px]">
               <MoreHorizontal
                 className="h-5 w-5 transition-colors duration-150"
-                style={{ color: menuOpen ? "#0066ff" : "#9ca3af" }}
+                style={{ color: menuOpen ? "#e65100" : "#9ca3af" }}
                 strokeWidth={menuOpen ? 2.2 : 1.8}
               />
               <span
                 className="text-[10px] font-medium tracking-wide transition-colors duration-150"
-                style={{ color: menuOpen ? "#0066ff" : "#9ca3af" }}
+                style={{ color: menuOpen ? "#e65100" : "#9ca3af" }}
               >
                 Menu
               </span>

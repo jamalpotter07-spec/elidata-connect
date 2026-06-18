@@ -2,11 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getGuestOrder } from "@/lib/orders.functions";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { NavBar } from "@/components/nav-bar";
-import { NetworkBadge, StatusBadge } from "@/components/status-badge";
-import { CheckCircle2, Clock, Loader2, MessageCircle, AlertTriangle } from "lucide-react";
+import { CheckCircle2, Clock, Loader2, MessageCircle, AlertTriangle, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/track/$orderId")({
@@ -15,37 +12,70 @@ export const Route = createFileRoute("/track/$orderId")({
 });
 
 const STEPS = [
-  { key: "pending", label: "Order received", desc: "Payment confirmed" },
-  { key: "paid", label: "Sent to network", desc: "Forwarding to carrier" },
-  { key: "processing", label: "Carrier processing", desc: "This can take 30s–3min" },
-  { key: "delivered", label: "Delivered", desc: "Data is on your phone" },
+  { key: "pending",    label: "Order received",    desc: "Awaiting payment confirmation"  },
+  { key: "paid",       label: "Sent to network",   desc: "Forwarding to carrier"          },
+  { key: "processing", label: "Carrier processing",desc: "Usually takes 30s–3 min"        },
+  { key: "delivered",  label: "Delivered",         desc: "Data is live on your phone"     },
 ] as const;
 
 function stepIndex(status: string) {
-  const idx = STEPS.findIndex((s) => s.key === status);
-  if (status === "delivered") return 3;
+  if (status === "delivered")  return 3;
   if (status === "processing") return 2;
-  if (status === "paid") return 1;
-  return idx >= 0 ? idx : 0;
+  if (status === "paid")       return 1;
+  return 0;
+}
+
+function NetworkPill({ network }: { network: string }) {
+  const styles: Record<string, React.CSSProperties> = {
+    MTN:     { background: "#111111", color: "#e6b800" },
+    Telecel: { background: "#E30613", color: "#ffffff" },
+    AT:      { background: "linear-gradient(90deg,#E30613,#002868)", color: "#ffffff" },
+  };
+  const s = styles[network] ?? { background: "#333", color: "#fff" };
+  return (
+    <span
+      style={{
+        ...s,
+        fontFamily:    "var(--font-heading)",
+        fontWeight:    900,
+        fontSize:      "0.68rem",
+        letterSpacing: "0.06em",
+        padding:       "3px 12px",
+        borderRadius:  "9999px",
+        display:       "inline-flex",
+        alignItems:    "center",
+      }}
+    >
+      {network === "AT" ? "Airtel-Tigo" : network}
+    </span>
+  );
 }
 
 function TrackPage() {
   const { orderId } = Route.useParams();
   const fn = useServerFn(getGuestOrder);
+
   const { data, isLoading } = useQuery({
     queryKey: ["track", orderId],
-    queryFn: () => fn({ data: { orderId } }),
+    queryFn:  () => fn({ data: { orderId } }),
     refetchInterval: (q) => {
       const s = (q.state.data as any)?.order?.status;
       return s === "delivered" || s === "failed" || s === "refunded" ? false : 2500;
     },
   });
-  const order: any = data?.order;
-  const status = order?.status ?? "pending";
-  const active = stepIndex(status);
-  const failed = status === "failed";
 
-  // Elapsed timer for reassurance
+  const order: any  = data?.order;
+  const status      = order?.status ?? "pending";
+  const active      = stepIndex(status);
+  const failed      = status === "failed";
+  const delivered   = status === "delivered";
+  const gbLabel     = order
+    ? ((order.data_mb / 1024) % 1 === 0
+        ? `${order.data_mb / 1024}`
+        : (order.data_mb / 1024).toFixed(1))
+    : "—";
+
+  // Elapsed timer
   const [elapsed, setElapsed] = useState(0);
   useEffect(() => {
     if (!order || ["delivered", "failed", "refunded"].includes(order.status)) return;
@@ -54,173 +84,457 @@ function TrackPage() {
     return () => clearInterval(t);
   }, [order]);
 
-  // Show a support nudge if the order is still pending after 30 seconds.
-  // Catches incomplete Paystack redirects or delayed webhooks so the customer
-  // has a clear action path rather than a spinner with no feedback.
   const showSupportNudge = status === "pending" && elapsed >= 30;
 
   return (
     <>
       <NavBar />
-      <main className="container mx-auto max-w-2xl px-4 py-8">
-        <Card className="overflow-hidden">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Live order tracking</span>
-              {order && <StatusBadge status={order.status} />}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {isLoading || !order ? (
-              <div className="flex items-center gap-2 text-muted-foreground py-6">
-                <Loader2 className="h-4 w-4 animate-spin" /> Loading your order…
-              </div>
-            ) : (
-              <>
-                {/* Summary */}
-                <div className="rounded-xl border bg-muted/30 p-4 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <NetworkBadge network={order.network} />
-                    <span className="font-mono text-xs text-muted-foreground">
+
+      <main
+        style={{
+          minHeight:  "100svh",
+          background: "var(--background)",
+          paddingTop: "80px",
+          paddingBottom: "100px",
+        }}
+      >
+        <div className="mx-auto px-4" style={{ maxWidth: "480px" }}>
+
+          {/* ── Page header ── */}
+          <div style={{ marginBottom: "24px" }}>
+            <p className="eyebrow mb-1">Live tracking</p>
+            <h1
+              style={{
+                fontFamily:    "var(--font-hero)",
+                fontWeight:    800,
+                fontSize:      "1.6rem",
+                letterSpacing: "-0.02em",
+                color:         "var(--foreground)",
+              }}
+            >
+              Order status
+            </h1>
+          </div>
+
+          {isLoading || !order ? (
+            <div
+              className="flex flex-col items-center justify-center gap-3 rounded-3xl"
+              style={{
+                background: "#ffffff",
+                border:     "1px solid rgba(0,0,0,0.07)",
+                padding:    "48px 24px",
+              }}
+            >
+              <Loader2
+                style={{ width: "28px", height: "28px", color: "#e65100" }}
+                className="animate-spin"
+              />
+              <p style={{ fontFamily: "var(--font-body)", fontSize: "0.85rem", color: "#888" }}>
+                Loading your order…
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
+
+              {/* ── Order summary card ── */}
+              <div
+                className="rounded-3xl overflow-hidden"
+                style={{
+                  background: "#ffffff",
+                  border:     "1px solid rgba(0,0,0,0.07)",
+                  boxShadow:  "0 2px 16px rgba(0,0,0,0.05)",
+                }}
+              >
+                {/* Coloured top stripe */}
+                <div
+                  style={{
+                    height:     "4px",
+                    background: delivered
+                      ? "linear-gradient(90deg,#22c55e,#16a34a)"
+                      : failed
+                        ? "linear-gradient(90deg,#ef4444,#dc2626)"
+                        : "linear-gradient(90deg,#e65100,#f37d01)",
+                  }}
+                />
+
+                <div className="p-5">
+                  {/* ID + network row */}
+                  <div className="flex items-center justify-between mb-3">
+                    <NetworkPill network={order.network} />
+                    <span
+                      style={{
+                        fontFamily:    "var(--font-body)",
+                        fontSize:      "0.7rem",
+                        fontWeight:    600,
+                        color:         "#aaaaaa",
+                        letterSpacing: "0.06em",
+                        textTransform: "uppercase",
+                      }}
+                    >
                       #{order.id.slice(0, 8).toUpperCase()}
                     </span>
                   </div>
-                  <div className="text-2xl font-extrabold">
-                    {(order.data_mb / 1024).toFixed(order.data_mb % 1024 ? 1 : 0)} GB
-                    <span className="ml-2 text-base font-medium text-muted-foreground">
-                      → {order.recipient_phone}
+
+                  {/* Data size */}
+                  <div className="flex items-end gap-1 mb-1">
+                    <span
+                      style={{
+                        fontFamily:    "var(--font-hero)",
+                        fontWeight:    800,
+                        fontSize:      "clamp(2.4rem, 10vw, 3rem)",
+                        color:         "#111111",
+                        lineHeight:    1,
+                        letterSpacing: "-0.03em",
+                      }}
+                    >
+                      {gbLabel}
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: "var(--font-hero)",
+                        fontWeight: 700,
+                        fontSize:   "1.1rem",
+                        color:      "#111111",
+                        paddingBottom: "4px",
+                      }}
+                    >
+                      gb
                     </span>
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    GHS {Number(order.amount_ghs).toFixed(2)}
-                  </div>
-                </div>
 
-                {/* Progress timeline */}
-                <ol className="relative space-y-5 pl-7">
-                  <span className="absolute left-[11px] top-2 bottom-2 w-px bg-border" />
-                  {STEPS.map((step, i) => {
-                    const done = i < active;
-                    const current = i === active && !failed;
-                    const isFail = failed && i === active;
-                    return (
-                      <li key={step.key} className="relative">
-                        <span
-                          className={`absolute -left-7 top-0.5 flex h-5 w-5 items-center justify-center rounded-full ring-4 ring-background ${
-                            isFail
-                              ? "bg-destructive text-destructive-foreground"
-                              : done
-                                ? "bg-[hsl(var(--brand-orange))] text-white"
-                                : current
-                                  ? "bg-[hsl(var(--brand-navy))] text-white"
-                                  : "bg-muted text-muted-foreground"
-                          }`}
-                        >
-                          {isFail ? (
-                            <AlertTriangle className="h-3 w-3" />
-                          ) : done ? (
-                            <CheckCircle2 className="h-3 w-3" />
-                          ) : current ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <Clock className="h-3 w-3" />
-                          )}
-                        </span>
-                        <div>
-                          <div className={`font-medium ${current ? "text-foreground" : done ? "text-foreground" : "text-muted-foreground"}`}>
-                            {step.label}
-                          </div>
-                          <div className="text-xs text-muted-foreground">{step.desc}</div>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ol>
-
-                {/* Reassurance panel */}
-                {status === "delivered" ? (
-                  <div className="rounded-lg border border-green-500/30 bg-green-500/5 p-4">
-                    <div className="font-semibold text-green-600 dark:text-green-400">
-                      ✅ Delivered successfully
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Dial <span className="font-mono">*124#</span> (MTN), <span className="font-mono">*110#</span> (Telecel) or <span className="font-mono">*100#</span> (AT) to confirm your balance.
-                    </p>
-                  </div>
-                ) : failed ? (
-                  <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 space-y-2">
-                    <div className="font-semibold text-destructive">Delivery hit a snag</div>
-                    <p className="text-sm text-muted-foreground">
-                      {order.notes || "The carrier rejected the request."} We've already been notified and will retry or refund within minutes.
-                    </p>
-                    <Button asChild size="sm" variant="outline">
-                      <a
-                        href={`https://wa.me/233500843914?text=${encodeURIComponent(`Hi, my order ${order.id.slice(0, 8)} failed.`)}`}
-                        target="_blank" rel="noreferrer"
-                      >
-                        <MessageCircle className="h-4 w-4 mr-1" /> Chat support on WhatsApp
-                      </a>
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="rounded-lg border bg-card p-4 space-y-2">
-                    <div className="flex items-center gap-2 text-sm font-medium">
-                      <Loader2 className="h-4 w-4 animate-spin text-[hsl(var(--brand-orange))]" />
-                      Working on it… {elapsed > 0 && <span className="text-muted-foreground font-normal">({elapsed}s elapsed)</span>}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      You can safely close this page — your data will arrive even if you leave.
-                      Most orders land within 1 minute, but carriers occasionally take up to 5.
-                      We'll keep retrying automatically.
-                    </p>
-                    {/* Indeterminate shimmer bar */}
-                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                      <div className="h-full w-1/3 animate-[shimmer_1.4s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-[hsl(var(--brand-navy))] via-[hsl(var(--brand-orange))] to-[hsl(var(--brand-navy))]" />
-                    </div>
-                    <style>{`@keyframes shimmer { 0% { transform: translateX(-100%);} 100% { transform: translateX(400%);} }`}</style>
-
-                    {/* 30-second support nudge — shown when payment hasn't been confirmed yet.
-                        Covers the case where the Paystack redirect never completed or the
-                        webhook is delayed, so the customer has a clear action path. */}
-                    {showSupportNudge && (
-                      <div className="mt-2 rounded-md border border-amber-500/30 bg-amber-500/5 p-3 space-y-1.5">
-                        <p className="text-xs font-medium text-amber-600 dark:text-amber-400">
-                          Still waiting? Your payment may not have been confirmed yet.
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          If you completed payment on Paystack, please wait another minute — confirmations can be delayed.
-                          If you did not complete payment, you can start a new order.
-                        </p>
-                        <Button asChild size="sm" variant="outline" className="h-7 text-xs">
-                          <a
-                            href={`https://wa.me/233500843914?text=${encodeURIComponent(`Hi, my order ${order.id.slice(0, 8)} is still pending after 30 seconds. Can you help?`)}`}
-                            target="_blank" rel="noreferrer"
-                          >
-                            <MessageCircle className="h-3 w-3 mr-1" /> Contact support
-                          </a>
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <div className="flex flex-wrap gap-2">
-                  <Button asChild variant="outline">
-                    <Link to="/">Buy another bundle</Link>
-                  </Button>
-                  <Button asChild variant="ghost">
-                    <a
-                      href={`https://wa.me/233500843914?text=${encodeURIComponent(`Hi, question about order ${order.id.slice(0, 8)}`)}`}
-                      target="_blank" rel="noreferrer"
+                  {/* Recipient + amount */}
+                  <div className="flex items-center justify-between mt-2">
+                    <span
+                      style={{
+                        fontFamily: "var(--font-body)",
+                        fontSize:   "0.85rem",
+                        color:      "#555",
+                        fontWeight: 500,
+                      }}
                     >
-                      <MessageCircle className="h-4 w-4 mr-1" /> Need help?
-                    </a>
-                  </Button>
+                      → {order.recipient_phone}
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: "var(--font-heading)",
+                        fontWeight: 700,
+                        fontSize:   "0.9rem",
+                        color:      "#111111",
+                      }}
+                    >
+                      GHS {Number(order.amount_ghs).toFixed(2)}
+                    </span>
+                  </div>
                 </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+              </div>
+
+              {/* ── Progress stepper ── */}
+              {!failed && (
+                <div
+                  className="rounded-3xl p-5"
+                  style={{
+                    background: "#ffffff",
+                    border:     "1px solid rgba(0,0,0,0.07)",
+                    boxShadow:  "0 2px 16px rgba(0,0,0,0.05)",
+                  }}
+                >
+                  <p
+                    style={{
+                      fontFamily:    "var(--font-eyebrow)",
+                      fontSize:      "0.65rem",
+                      letterSpacing: "0.16em",
+                      textTransform: "uppercase",
+                      color:         "#aaaaaa",
+                      marginBottom:  "20px",
+                    }}
+                  >
+                    Progress
+                  </p>
+
+                  <ol className="flex flex-col gap-0">
+                    {STEPS.map((step, i) => {
+                      const done    = i < active;
+                      const current = i === active && !failed;
+                      const future  = i > active;
+                      const isLast  = i === STEPS.length - 1;
+
+                      return (
+                        <li key={step.key} className="flex gap-4">
+                          {/* Dot + connector */}
+                          <div className="flex flex-col items-center" style={{ width: "20px", flexShrink: 0 }}>
+                            <span
+                              style={{
+                                width:      "20px",
+                                height:     "20px",
+                                borderRadius: "50%",
+                                flexShrink: 0,
+                                display:    "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                background: done
+                                  ? "#22c55e"
+                                  : current
+                                    ? "#e65100"
+                                    : "rgba(0,0,0,0.08)",
+                                transition: "background 0.3s",
+                              }}
+                            >
+                              {done ? (
+                                <CheckCircle2 style={{ width: "12px", height: "12px", color: "#fff" }} />
+                              ) : current ? (
+                                <Loader2 style={{ width: "11px", height: "11px", color: "#fff" }} className="animate-spin" />
+                              ) : (
+                                <Clock style={{ width: "11px", height: "11px", color: "#aaa" }} />
+                              )}
+                            </span>
+                            {!isLast && (
+                              <div
+                                style={{
+                                  width:      "2px",
+                                  flex:       "1 1 0",
+                                  minHeight:  "28px",
+                                  background: done ? "#22c55e" : "rgba(0,0,0,0.07)",
+                                  marginTop:  "3px",
+                                  marginBottom: "3px",
+                                  borderRadius: "1px",
+                                  transition: "background 0.3s",
+                                }}
+                              />
+                            )}
+                          </div>
+
+                          {/* Label */}
+                          <div style={{ paddingBottom: isLast ? 0 : "20px", paddingTop: "1px" }}>
+                            <p
+                              style={{
+                                fontFamily: "var(--font-heading)",
+                                fontWeight: current ? 700 : done ? 600 : 500,
+                                fontSize:   "0.85rem",
+                                color:      future ? "#bbbbbb" : "#111111",
+                                lineHeight: 1.3,
+                              }}
+                            >
+                              {step.label}
+                            </p>
+                            <p
+                              style={{
+                                fontFamily: "var(--font-body)",
+                                fontSize:   "0.72rem",
+                                color:      "#aaaaaa",
+                                marginTop:  "2px",
+                              }}
+                            >
+                              {step.desc}
+                            </p>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                </div>
+              )}
+
+              {/* ── Status panel ── */}
+              {delivered ? (
+                <div
+                  className="rounded-3xl p-5"
+                  style={{
+                    background: "rgba(34,197,94,0.06)",
+                    border:     "1px solid rgba(34,197,94,0.20)",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontFamily: "var(--font-heading)",
+                      fontWeight: 700,
+                      fontSize:   "0.95rem",
+                      color:      "#16a34a",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    ✅ Data delivered successfully
+                  </div>
+                  <p style={{ fontFamily: "var(--font-body)", fontSize: "0.78rem", color: "#555", lineHeight: 1.6 }}>
+                    Check your balance: dial{" "}
+                    <code style={{ fontWeight: 700, color: "#111" }}>*124#</code> (MTN)
+                    {" · "}<code style={{ fontWeight: 700, color: "#111" }}>*110#</code> (Telecel)
+                    {" · "}<code style={{ fontWeight: 700, color: "#111" }}>*100#</code> (AT)
+                  </p>
+                </div>
+              ) : failed ? (
+                <div
+                  className="rounded-3xl p-5"
+                  style={{
+                    background: "rgba(239,68,68,0.05)",
+                    border:     "1px solid rgba(239,68,68,0.20)",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontFamily: "var(--font-heading)",
+                      fontWeight: 700,
+                      fontSize:   "0.95rem",
+                      color:      "#dc2626",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    ❌ Delivery hit a snag
+                  </div>
+                  <p style={{ fontFamily: "var(--font-body)", fontSize: "0.78rem", color: "#555", lineHeight: 1.6, marginBottom: "14px" }}>
+                    {order.notes || "The carrier rejected the request."} We've been notified and will retry or refund within minutes.
+                  </p>
+                  <a
+                    href={`https://wa.me/233500843914?text=${encodeURIComponent(`Hi, my order ${order.id.slice(0, 8)} failed. Can you help?`)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2"
+                    style={{
+                      background:    "#25D366",
+                      color:         "#ffffff",
+                      fontFamily:    "var(--font-heading)",
+                      fontWeight:    700,
+                      fontSize:      "0.8rem",
+                      padding:       "9px 18px",
+                      borderRadius:  "9999px",
+                      textDecoration: "none",
+                    }}
+                  >
+                    <MessageCircle style={{ width: "15px", height: "15px" }} />
+                    Chat support on WhatsApp
+                  </a>
+                </div>
+              ) : (
+                <div
+                  className="rounded-3xl p-5"
+                  style={{
+                    background: "#ffffff",
+                    border:     "1px solid rgba(0,0,0,0.07)",
+                  }}
+                >
+                  {/* Shimmer progress bar */}
+                  <div
+                    style={{
+                      height:       "3px",
+                      borderRadius: "9999px",
+                      overflow:     "hidden",
+                      background:   "rgba(0,0,0,0.06)",
+                      marginBottom: "14px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        height:     "100%",
+                        width:      "40%",
+                        borderRadius: "9999px",
+                        background: "linear-gradient(90deg, #e65100, #f37d01, #e65100)",
+                        backgroundSize: "200% 100%",
+                        animation:  "gold-shimmer 1.4s linear infinite",
+                      }}
+                    />
+                  </div>
+
+                  <p
+                    style={{
+                      fontFamily: "var(--font-heading)",
+                      fontWeight: 600,
+                      fontSize:   "0.85rem",
+                      color:      "#111",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    Working on it
+                    {elapsed > 0 && (
+                      <span style={{ fontWeight: 400, color: "#aaa", marginLeft: "6px" }}>
+                        {elapsed}s elapsed
+                      </span>
+                    )}
+                  </p>
+                  <p style={{ fontFamily: "var(--font-body)", fontSize: "0.75rem", color: "#888", lineHeight: 1.6 }}>
+                    You can close this page — data arrives even if you leave. Most orders land in under 60 seconds.
+                  </p>
+
+                  {showSupportNudge && (
+                    <div
+                      className="mt-4 rounded-2xl p-4"
+                      style={{
+                        background: "rgba(245,158,11,0.06)",
+                        border:     "1px solid rgba(245,158,11,0.25)",
+                      }}
+                    >
+                      <p
+                        style={{
+                          fontFamily: "var(--font-heading)",
+                          fontWeight: 600,
+                          fontSize:   "0.78rem",
+                          color:      "#b45309",
+                          marginBottom: "4px",
+                        }}
+                      >
+                        Still waiting?
+                      </p>
+                      <p style={{ fontFamily: "var(--font-body)", fontSize: "0.72rem", color: "#555", lineHeight: 1.5, marginBottom: "12px" }}>
+                        If you completed Paystack payment, wait another minute. If not, start a new order.
+                      </p>
+                      <a
+                        href={`https://wa.me/233500843914?text=${encodeURIComponent(`Hi, order ${order.id.slice(0, 8)} still pending after 30s.`)}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5"
+                        style={{
+                          background:    "#25D366",
+                          color:         "#ffffff",
+                          fontFamily:    "var(--font-heading)",
+                          fontWeight:    700,
+                          fontSize:      "0.75rem",
+                          padding:       "7px 16px",
+                          borderRadius:  "9999px",
+                          textDecoration: "none",
+                        }}
+                      >
+                        <MessageCircle style={{ width: "13px", height: "13px" }} />
+                        Contact support
+                      </a>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── Action buttons ── */}
+              <div className="flex gap-2 mt-1">
+                <Link
+                  to="/"
+                  className="btn-orange flex-1 inline-flex items-center justify-center gap-1.5"
+                  style={{ padding: "12px 20px", fontSize: "0.82rem", textDecoration: "none" }}
+                >
+                  Buy another
+                  <ChevronRight style={{ width: "14px", height: "14px" }} />
+                </Link>
+                <a
+                  href={`https://wa.me/233500843914?text=${encodeURIComponent(`Hi, question about order ${order.id.slice(0, 8)}`)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center gap-1.5"
+                  style={{
+                    padding:       "12px 16px",
+                    borderRadius:  "9999px",
+                    border:        "1.5px solid rgba(0,0,0,0.12)",
+                    background:    "#ffffff",
+                    fontFamily:    "var(--font-heading)",
+                    fontWeight:    600,
+                    fontSize:      "0.82rem",
+                    color:         "#111",
+                    textDecoration: "none",
+                    whiteSpace:    "nowrap",
+                  }}
+                >
+                  <MessageCircle style={{ width: "15px", height: "15px", color: "#25D366" }} />
+                  Help
+                </a>
+              </div>
+
+            </div>
+          )}
+        </div>
       </main>
     </>
   );
