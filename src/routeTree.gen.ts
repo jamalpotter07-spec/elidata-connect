@@ -18,6 +18,7 @@ import { Route as BuyRouteImport } from './routes/buy'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TrackRouteImport } from './routes/track'
 import { Route as TrackOrderIdRouteImport } from './routes/track.$orderId'
 import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -77,6 +78,11 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrackRoute = TrackRouteImport.update({
+  id: '/track',
+  path: '/track',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TrackOrderIdRoute = TrackOrderIdRouteImport.update({
@@ -180,6 +186,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/orders': typeof AuthenticatedOrdersRouteWithChildren
+  '/track': typeof TrackRoute
   '/track/$orderId': typeof TrackOrderIdRoute
   '/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/admin/bundles': typeof AuthenticatedAdminAdminBundlesRoute
@@ -205,6 +212,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/orders': typeof AuthenticatedOrdersRouteWithChildren
+  '/track': typeof TrackRoute
   '/track/$orderId': typeof TrackOrderIdRoute
   '/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/admin/bundles': typeof AuthenticatedAdminAdminBundlesRoute
@@ -233,6 +241,7 @@ export interface FileRoutesById {
   '/_authenticated/_admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/orders': typeof AuthenticatedOrdersRouteWithChildren
+  '/track': typeof TrackRoute
   '/track/$orderId': typeof TrackOrderIdRoute
   '/_authenticated/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/_authenticated/_admin/admin/bundles': typeof AuthenticatedAdminAdminBundlesRoute
@@ -260,6 +269,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/dashboard'
     | '/orders'
+    | '/track'
     | '/track/$orderId'
     | '/orders/$orderId'
     | '/admin/bundles'
@@ -285,6 +295,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/dashboard'
     | '/orders'
+    | '/track'
     | '/track/$orderId'
     | '/orders/$orderId'
     | '/admin/bundles'
@@ -311,6 +322,7 @@ export interface FileRouteTypes {
     | '/_authenticated/_admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/orders'
+    | '/track'
     | '/track/$orderId'
     | '/_authenticated/orders/$orderId'
     | '/_authenticated/_admin/admin/bundles'
@@ -336,6 +348,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
   TermsRoute: typeof TermsRoute
+  TrackRoute: typeof TrackRoute
   TrackOrderIdRoute: typeof TrackOrderIdRoute
   ApiPublicHooksBalanceCheckRoute: typeof ApiPublicHooksBalanceCheckRoute
   ApiPublicHooksDailyProfitRoute: typeof ApiPublicHooksDailyProfitRoute
@@ -408,6 +421,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/track': {
+      id: '/track'
+      path: '/track'
+      fullPath: '/track'
+      preLoaderRoute: typeof TrackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/track/$orderId': {
@@ -582,6 +602,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
   TermsRoute: TermsRoute,
+  TrackRoute: TrackRoute,
   TrackOrderIdRoute: TrackOrderIdRoute,
   ApiPublicHooksBalanceCheckRoute: ApiPublicHooksBalanceCheckRoute,
   ApiPublicHooksDailyProfitRoute: ApiPublicHooksDailyProfitRoute,

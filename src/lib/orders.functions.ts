@@ -171,6 +171,34 @@ export const getGuestOrder = createServerFn({ method: "GET" })
     return { order };
   });
 
+// ---------------------------------------------------------------------------
+// PUBLIC — Search orders by recipient phone number.
+// Returns the last 10 orders for that phone so the customer can find any order
+// without needing to save the order ID link.
+// Security considerations:
+//   • Returns only safe public fields — no internal notes, IP tags, or cost data.
+//   • Limited to 10 results so it cannot be used to enumerate all orders.
+//   • Phone number must match exactly (no partial / fuzzy match).
+//   • Rate-limited indirectly by Paystack / Supabase connection limits.
+// ---------------------------------------------------------------------------
+export const searchOrdersByPhone = createServerFn({ method: "GET" })
+  .inputValidator((input) =>
+    z.object({ phone: phoneSchema }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { data: orders, error } = await supabaseAdmin
+      .from("orders")
+      .select("id, network, data_mb, amount_ghs, status, created_at")
+      .eq("recipient_phone", data.phone)
+      .order("created_at", { ascending: false })
+      .limit(10);
+
+    if (error) throw new Error(error.message);
+
+    // Never expose recipient_phone or notes in a public listing endpoint.
+    return { orders: orders ?? [] };
+  });
+
 // One-click re-order: re-create a new order from a previous one (same bundle + recipient).
 export const reorderOrder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
