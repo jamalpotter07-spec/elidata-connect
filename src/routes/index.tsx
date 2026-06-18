@@ -10,6 +10,7 @@ import { OfferCard } from "@/components/offer-card";
 import bgImg from "@/assets/background.jpeg";
 import { Link } from "@tanstack/react-router";
 import { Shield, Clock, Wifi, ChevronRight, Zap, MapPin } from "lucide-react";
+import { ServiceStatusBanner } from "@/components/service-status-banner";
 
 export const Route = createFileRoute("/")(({
   component: HomePage,
@@ -198,6 +199,15 @@ function HomePage() {
                 />
               </Link>
             </div>
+          </div>
+        </section>
+
+        {/* ════════════════════════════════════
+            SERVICE STATUS + USSD BANNER
+        ════════════════════════════════════ */}
+        <section style={{ background: "var(--background)", paddingTop: "28px", paddingBottom: "0" }}>
+          <div className="mx-auto px-4 max-w-5xl">
+            <ServiceStatusBanner />
           </div>
         </section>
 

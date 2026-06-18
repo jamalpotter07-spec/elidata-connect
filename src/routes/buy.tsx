@@ -17,6 +17,7 @@ import { CheckoutDialog }  from "@/components/checkout-dialog";
 import { WhatsAppFloat }   from "@/components/whatsapp-float";
 import { OfferCard }       from "@/components/offer-card";
 import { ArrowLeft, ChevronDown, Infinity } from "lucide-react";
+import { ServiceStatusBanner } from "@/components/service-status-banner";
 
 type Bundle  = {
   id: string; network: string; name: string;
@@ -335,6 +336,9 @@ function BuyPage() {
               </p>
             </div>
           </div>
+
+          {/* ── Service status + USSD banner ── */}
+          <ServiceStatusBanner />
 
           {/* ── Network tabs ── */}
           <div
