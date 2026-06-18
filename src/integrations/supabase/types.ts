@@ -23,6 +23,7 @@ export type Database = {
           id: string
           name: string
           network: Database["public"]["Enums"]["network"]
+          original_price_ghs: number | null
           price_ghs: number
           sort_order: number
           updated_at: string
@@ -36,6 +37,7 @@ export type Database = {
           id?: string
           name: string
           network: Database["public"]["Enums"]["network"]
+          original_price_ghs?: number | null
           price_ghs: number
           sort_order?: number
           updated_at?: string
@@ -49,6 +51,7 @@ export type Database = {
           id?: string
           name?: string
           network?: Database["public"]["Enums"]["network"]
+          original_price_ghs?: number | null
           price_ghs?: number
           sort_order?: number
           updated_at?: string
@@ -69,6 +72,7 @@ export type Database = {
           paystack_reference: string | null
           recipient_phone: string
           reseller_reference: string | null
+          retry_count: number
           status: Database["public"]["Enums"]["order_status"]
           updated_at: string
           user_id: string | null
@@ -85,6 +89,7 @@ export type Database = {
           paystack_reference?: string | null
           recipient_phone: string
           reseller_reference?: string | null
+          retry_count?: number
           status?: Database["public"]["Enums"]["order_status"]
           updated_at?: string
           user_id?: string | null
@@ -101,6 +106,7 @@ export type Database = {
           paystack_reference?: string | null
           recipient_phone?: string
           reseller_reference?: string | null
+          retry_count?: number
           status?: Database["public"]["Enums"]["order_status"]
           updated_at?: string
           user_id?: string | null
