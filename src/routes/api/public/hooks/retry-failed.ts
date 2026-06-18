@@ -1,11 +1,15 @@
 // Auto-retry hook for failed Mobigh deliveries.
 // Called by a Cloudflare Cron Trigger every 5 minutes (configure in wrangler.jsonc).
 // Logic:
-//   • Picks up orders with status "failed" and retry_count < 3
+//   • Picks up orders with status "failed" and retry_count < MAX_RETRIES
 //   • Attempts Mobigh fulfillment again
 //   • On success → marks "delivered", sends SMS + Telegram notification
-//   • On failure → increments retry_count; if retry_count reaches 3 → marks
-//     "failed" permanently and sends a Telegram alert for manual intervention
+//   • On failure → increments retry_count via DB column (patch-3);
+//     if retry_count reaches MAX_RETRIES → marks "failed" permanently
+//     and sends a Telegram alert for manual intervention
+//
+// PATCH 3: retry_count is now a proper integer column on orders (no more
+// "[retries:N]" string parsing in notes). The migration backfills existing rows.
 //
 // To wire up the cron, add to wrangler.jsonc:
 //   "triggers": { "crons": ["*/5 * * * *"] }
@@ -24,7 +28,6 @@ export const Route = createFileRoute("/api/public/hooks/retry-failed")({
     handlers: {
       POST: async ({ request }) => {
         // Shared secret guard — prevents public abuse of this endpoint.
-        // Set CRON_SECRET in your .env / Cloudflare secrets.
         const secret = process.env.CRON_SECRET;
         if (secret) {
           const provided = request.headers.get("x-cron-secret");
@@ -38,15 +41,14 @@ export const Route = createFileRoute("/api/public/hooks/retry-failed")({
         const { notifyAdmin }   = await import("@/lib/notify.server");
         const { deliveredSms }  = await import("@/lib/sms.server");
 
-        // Find all failed orders that haven't exhausted their retry budget.
-        // retry_count is stored in the notes field as "[retries:N]" until a
-        // dedicated column is added via migration (see Note below).
+        // Query uses the real retry_count column — no string parsing.
         const { data: failed, error } = await supabaseAdmin
           .from("orders")
-          .select("id, network, data_mb, recipient_phone, notes, amount_ghs")
+          .select("id, network, data_mb, recipient_phone, notes, amount_ghs, retry_count")
           .eq("status", "failed")
+          .lt("retry_count", MAX_RETRIES)   // DB-level filter replaces client-side skip
           .order("created_at", { ascending: true })
-          .limit(20); // process max 20 per run to stay within Cloudflare CPU limits
+          .limit(20);
 
         if (error) {
           return Response.json({ ok: false, error: error.message }, { status: 500 });
@@ -55,24 +57,13 @@ export const Route = createFileRoute("/api/public/hooks/retry-failed")({
         const results: { id: string; outcome: string }[] = [];
 
         for (const order of failed ?? []) {
-          // Parse retry count embedded in notes
-          const retryMatch = (order.notes ?? "").match(/\[retries:(\d+)\]/);
-          const retryCount = retryMatch ? parseInt(retryMatch[1], 10) : 0;
+          const newRetryCount = (order.retry_count ?? 0) + 1;
 
-          if (retryCount >= MAX_RETRIES) {
-            // Already exhausted — skip, leave for manual admin action
-            results.push({ id: order.id, outcome: "skipped:max_retries" });
-            continue;
-          }
-
-          const newRetryCount = retryCount + 1;
-          const notesWithoutTag = (order.notes ?? "").replace(/\[retries:\d+\]/, "").trim();
-          const updatedNotes = `${notesWithoutTag} [retries:${newRetryCount}]`.trim();
-
-          // Mark as processing before attempting
+          // Mark as processing before attempting — reset retry_count increment
+          // happens on failure path only; success path clears it implicitly.
           await supabaseAdmin
             .from("orders")
-            .update({ status: "processing", notes: updatedNotes })
+            .update({ status: "processing" })
             .eq("id", order.id);
 
           const result = await fulfill({
@@ -83,32 +74,49 @@ export const Route = createFileRoute("/api/public/hooks/retry-failed")({
           });
 
           if (result.ok) {
+            // Success — clear retry_count back to 0 and mark delivered
             await supabaseAdmin
               .from("orders")
-              .update({ status: "delivered", reseller_reference: result.reference })
+              .update({
+                status:              "delivered",
+                reseller_reference:  result.reference,
+                retry_count:         0,
+              })
               .eq("id", order.id);
 
             await notifyAdmin(
-              `🔁✅ <b>Auto-retry delivered</b> (attempt ${newRetryCount}/${MAX_RETRIES})\n${order.network} ${(order.data_mb / 1024).toFixed(1)}GB → ${order.recipient_phone}\nRef: ${result.reference}`,
+              `Retry delivered (attempt ${newRetryCount}/${MAX_RETRIES})\n${order.network} ${(order.data_mb / 1024).toFixed(1)}GB to ${order.recipient_phone}\nRef: ${result.reference}`,
             );
             await deliveredSms({
-              phone: order.recipient_phone,
+              phone:   order.recipient_phone,
               network: order.network,
-              dataMb: order.data_mb,
+              dataMb:  order.data_mb,
               orderId: order.id,
             });
             results.push({ id: order.id, outcome: "delivered" });
           } else {
-            // Re-mark as failed with updated retry count
+            // Failure — write retry_count to the real column
+            const isFinal = newRetryCount >= MAX_RETRIES;
+
+            // Strip old ip tag from notes so we don't keep leaking it into
+            // the failure reason; keep any human-readable error text.
+            const cleanNotes = (order.notes ?? "")
+              .replace(/\[ip:[^\]]+\]/g, "")
+              .trim();
+            const failureNote = `${cleanNotes} — ${result.error}`.replace(/^—\s*/, "").trim();
+
             await supabaseAdmin
               .from("orders")
-              .update({ status: "failed", notes: `${updatedNotes} — ${result.error}`.trim() })
+              .update({
+                status:      "failed",
+                retry_count: newRetryCount,
+                notes:       failureNote || null,
+              })
               .eq("id", order.id);
 
-            if (newRetryCount >= MAX_RETRIES) {
-              // Final failure — alert admin for manual intervention
+            if (isFinal) {
               await notifyAdmin(
-                `🔁❌ <b>Auto-retry exhausted</b> (${MAX_RETRIES}/${MAX_RETRIES} attempts)\n${order.network} ${(order.data_mb / 1024).toFixed(1)}GB → ${order.recipient_phone}\nLast error: ${result.error}\nOrder: <code>${order.id.slice(0, 8)}</code> — manual action required.`,
+                `Auto-retry exhausted (${MAX_RETRIES}/${MAX_RETRIES} attempts)\n${order.network} ${(order.data_mb / 1024).toFixed(1)}GB to ${order.recipient_phone}\nLast error: ${result.error}\nOrder: ${order.id.slice(0, 8)} — manual action required.`,
               );
               results.push({ id: order.id, outcome: "failed:exhausted" });
             } else {
@@ -118,7 +126,7 @@ export const Route = createFileRoute("/api/public/hooks/retry-failed")({
         }
 
         return Response.json({
-          ok: true,
+          ok:        true,
           processed: results.length,
           results,
         });
