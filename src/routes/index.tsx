@@ -9,9 +9,9 @@ import { WhatsAppFloat } from "@/components/whatsapp-float";
 import { OfferCard } from "@/components/offer-card";
 import bgImg from "@/assets/background.jpeg";
 import { Link } from "@tanstack/react-router";
-import { Shield, Clock, Wifi, ChevronRight } from "lucide-react";
+import { Shield, Clock, Wifi, ChevronRight, Zap, MapPin } from "lucide-react";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/")(({
   component: HomePage,
   head: () => ({
     meta: [
@@ -24,7 +24,7 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "Eli Data Resales — Cheapest data bundles, Ghana" },
     ],
   }),
-});
+}));
 
 const NETWORKS = [
   { id: "MTN"     as const, label: "MTN"         },
@@ -32,24 +32,25 @@ const NETWORKS = [
   { id: "AT"      as const, label: "Airtel-Tigo"  },
 ];
 
+// All icons are now Lucide components — no emoji strings.
 const TRUST_BADGES = [
   {
-    icon: "⚡",
+    Icon: Zap,
     label: "Instant Delivery",
     sub: "Most orders in under 60s",
   },
   {
-    icon: Shield,
+    Icon: Shield,
     label: "Refund Guarantee",
     sub: "100% money-back promise",
   },
   {
-    icon: Clock,
+    Icon: Clock,
     label: "24/7 Available",
     sub: "Order anytime, day or night",
   },
   {
-    icon: Wifi,
+    Icon: Wifi,
     label: "All Networks",
     sub: "MTN, Telecel & Airtel-Tigo",
   },
@@ -91,7 +92,7 @@ function HomePage() {
           className="relative overflow-hidden"
           style={{ minHeight: "clamp(480px, 90svh, 640px)" }}
         >
-          {/* Background image — tiny blur, properly positioned */}
+          {/* Background image */}
           <div
             aria-hidden="true"
             style={{
@@ -105,7 +106,7 @@ function HomePage() {
               zIndex:             0,
             }}
           />
-          {/* Dark overlay for readability */}
+          {/* Dark overlay */}
           <div
             aria-hidden="true"
             style={{
@@ -121,7 +122,7 @@ function HomePage() {
             className="relative flex flex-col justify-center px-5 py-16 md:py-24 max-w-2xl mx-auto"
             style={{ zIndex: 2, animation: "slide-up 0.65s cubic-bezier(0.22,1,0.36,1) both" }}
           >
-            {/* Network strip above headline */}
+            {/* Network strip */}
             <p
               style={{
                 fontFamily:    "var(--font-eyebrow)",
@@ -147,7 +148,7 @@ function HomePage() {
               <span className="word-orange">Airtel-Tigo</span>
             </h1>
 
-            {/* Sub */}
+            {/* Subtitle */}
             <p
               style={{
                 fontFamily: "var(--font-body)",
@@ -171,8 +172,8 @@ function HomePage() {
                 className="btn-orange"
                 onClick={() => navigate({ to: "/buy" })}
                 style={{
-                  padding:    "13px 28px",
-                  fontSize:   "0.9rem",
+                  padding:  "13px 28px",
+                  fontSize: "0.9rem",
                 }}
               >
                 Buy bundle now
@@ -206,14 +207,13 @@ function HomePage() {
         <section style={{ background: "var(--background)", padding: "48px 0 0" }}>
           <div className="mx-auto px-4 max-w-5xl">
 
-            {/* Eyebrow */}
             <p className="eyebrow mb-6">We offer</p>
 
             <div
               className="grid gap-3"
               style={{ gridTemplateColumns: "repeat(auto-fit, minmax(148px, 1fr))" }}
             >
-              {TRUST_BADGES.map(({ icon: Icon, label, sub }, i) => (
+              {TRUST_BADGES.map(({ Icon, label, sub }, i) => (
                 <div
                   key={label}
                   className="feature-card flex flex-col items-center text-center gap-3 px-4 py-5"
@@ -224,21 +224,17 @@ function HomePage() {
                   <span
                     className="feature-icon flex items-center justify-center rounded-2xl"
                     style={{
-                      width:       "44px",
-                      height:      "44px",
-                      background:  "rgba(230,81,0,0.08)",
-                      border:      "1.5px solid rgba(230,81,0,0.15)",
-                      transition:  "background 0.28s, border-color 0.28s",
+                      width:      "44px",
+                      height:     "44px",
+                      background: "rgba(230,81,0,0.08)",
+                      border:     "1.5px solid rgba(230,81,0,0.15)",
+                      transition: "background 0.28s, border-color 0.28s",
                     }}
                   >
-                    {typeof Icon === "string" ? (
-                      <span style={{ fontSize: "1.2rem" }}>{Icon}</span>
-                    ) : (
-                      <Icon
-                        style={{ width: "18px", height: "18px", color: "#e65100" }}
-                        strokeWidth={2}
-                      />
-                    )}
+                    <Icon
+                      style={{ width: "18px", height: "18px", color: "#e65100" }}
+                      strokeWidth={2}
+                    />
                   </span>
                   <div>
                     <p
@@ -279,7 +275,6 @@ function HomePage() {
         >
           <div className="mx-auto px-4 max-w-5xl">
 
-            {/* Heading */}
             <div style={{ marginBottom: "24px" }}>
               <h2
                 className="section-h2 text-gradient-gold"
@@ -299,7 +294,7 @@ function HomePage() {
               </p>
             </div>
 
-            {/* Network selector — connected pill strip */}
+            {/* Network selector */}
             <div style={{ marginBottom: "24px" }}>
               <div className="network-strip">
                 {NETWORKS.map((n) => (
@@ -348,15 +343,15 @@ function HomePage() {
                   </div>
                 ))}
 
-                {/* "More" card */}
+                {/* "See all" card */}
                 <button
                   onClick={() => navigate({ to: "/buy", search: { network: activeNet } })}
                   className="bundle-card flex flex-col items-center justify-center gap-2"
                   style={{
-                    background:  "rgba(0,0,0,0.03)",
-                    border:      "1.5px dashed rgba(0,0,0,0.15)",
-                    color:       "#555555",
-                    maxWidth:    "180px",
+                    background: "rgba(0,0,0,0.03)",
+                    border:     "1.5px dashed rgba(0,0,0,0.15)",
+                    color:      "#555555",
+                    maxWidth:   "180px",
                   }}
                   aria-label="See all bundles"
                 >
@@ -512,20 +507,24 @@ function HomePage() {
               </div>
             </div>
 
-            {/* Bottom bar */}
+            {/* Bottom bar — Ghana text replaced with MapPin icon */}
             <div
               className="flex flex-col md:flex-row items-center justify-between gap-2"
               style={{
-                marginTop:   "32px",
-                paddingTop:  "20px",
-                borderTop:   "1px solid rgba(255,255,255,0.15)",
+                marginTop:  "32px",
+                paddingTop: "20px",
+                borderTop:  "1px solid rgba(255,255,255,0.15)",
               }}
             >
               <p style={{ fontFamily: "var(--font-body)", fontSize: "0.72rem", color: "rgba(255,255,255,0.50)" }}>
-                © {new Date().getFullYear()} Eli Data Resales. All rights reserved.
+                &copy; {new Date().getFullYear()} Eli Data Resales. All rights reserved.
               </p>
-              <p style={{ fontFamily: "var(--font-body)", fontSize: "0.72rem", color: "rgba(255,255,255,0.50)" }}>
-                Ghana 🇬🇭 · Fast · Secure · Reliable
+              <p
+                className="flex items-center gap-1.5"
+                style={{ fontFamily: "var(--font-body)", fontSize: "0.72rem", color: "rgba(255,255,255,0.50)" }}
+              >
+                <MapPin style={{ width: "11px", height: "11px", flexShrink: 0 }} strokeWidth={2} />
+                Ghana · Fast · Secure · Reliable
               </p>
             </div>
           </div>

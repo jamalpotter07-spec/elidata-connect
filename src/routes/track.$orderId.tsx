@@ -3,8 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getGuestOrder } from "@/lib/orders.functions";
 import { NavBar } from "@/components/nav-bar";
-import { CheckCircle2, Clock, Loader2, MessageCircle, AlertTriangle, ChevronRight } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+  CheckCircle2, Clock, Loader2, MessageCircle,
+  ChevronRight, Copy, Check, PackageCheck, PackageX,
+} from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
 
 export const Route = createFileRoute("/track/$orderId")({
   component: TrackPage,
@@ -12,10 +15,10 @@ export const Route = createFileRoute("/track/$orderId")({
 });
 
 const STEPS = [
-  { key: "pending",    label: "Order received",    desc: "Awaiting payment confirmation"  },
-  { key: "paid",       label: "Sent to network",   desc: "Forwarding to carrier"          },
-  { key: "processing", label: "Carrier processing",desc: "Usually takes 30s–3 min"        },
-  { key: "delivered",  label: "Delivered",         desc: "Data is live on your phone"     },
+  { key: "pending",    label: "Order received",     desc: "Awaiting payment confirmation" },
+  { key: "paid",       label: "Sent to network",    desc: "Forwarding to carrier"         },
+  { key: "processing", label: "Carrier processing", desc: "Usually takes 30s–3 min"       },
+  { key: "delivered",  label: "Delivered",          desc: "Data is live on your phone"    },
 ] as const;
 
 function stepIndex(status: string) {
@@ -51,6 +54,42 @@ function NetworkPill({ network }: { network: string }) {
   );
 }
 
+// Copy-to-clipboard button — shows a tick for 2s after copy
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const handle = useCallback(() => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }, [text]);
+
+  return (
+    <button
+      onClick={handle}
+      title="Copy order ID"
+      aria-label="Copy full order ID"
+      style={{
+        display:        "inline-flex",
+        alignItems:     "center",
+        justifyContent: "center",
+        width:          "28px",
+        height:         "28px",
+        borderRadius:   "50%",
+        border:         "1.5px solid rgba(0,0,0,0.10)",
+        background:     copied ? "rgba(34,197,94,0.08)" : "#ffffff",
+        cursor:         "pointer",
+        transition:     "background 0.2s, border-color 0.2s",
+        flexShrink:     0,
+      }}
+    >
+      {copied
+        ? <Check style={{ width: "12px", height: "12px", color: "#16a34a" }} />
+        : <Copy  style={{ width: "12px", height: "12px", color: "#888888" }} />}
+    </button>
+  );
+}
+
 function TrackPage() {
   const { orderId } = Route.useParams();
   const fn = useServerFn(getGuestOrder);
@@ -64,18 +103,18 @@ function TrackPage() {
     },
   });
 
-  const order: any  = data?.order;
-  const status      = order?.status ?? "pending";
-  const active      = stepIndex(status);
-  const failed      = status === "failed";
-  const delivered   = status === "delivered";
-  const gbLabel     = order
+  const order     = data?.order as any;
+  const status    = order?.status ?? "pending";
+  const active    = stepIndex(status);
+  const failed    = status === "failed";
+  const delivered = status === "delivered";
+  const gbLabel   = order
     ? ((order.data_mb / 1024) % 1 === 0
         ? `${order.data_mb / 1024}`
         : (order.data_mb / 1024).toFixed(1))
     : "—";
 
-  // Elapsed timer
+  // Elapsed timer (stopped once terminal status reached)
   const [elapsed, setElapsed] = useState(0);
   useEffect(() => {
     if (!order || ["delivered", "failed", "refunded"].includes(order.status)) return;
@@ -92,9 +131,9 @@ function TrackPage() {
 
       <main
         style={{
-          minHeight:  "100svh",
-          background: "var(--background)",
-          paddingTop: "80px",
+          minHeight:     "100svh",
+          background:    "var(--background)",
+          paddingTop:    "80px",
           paddingBottom: "100px",
         }}
       >
@@ -158,21 +197,25 @@ function TrackPage() {
                 />
 
                 <div className="p-5">
-                  {/* ID + network row */}
+                  {/* Network + order ID row */}
                   <div className="flex items-center justify-between mb-3">
                     <NetworkPill network={order.network} />
-                    <span
-                      style={{
-                        fontFamily:    "var(--font-body)",
-                        fontSize:      "0.7rem",
-                        fontWeight:    600,
-                        color:         "#aaaaaa",
-                        letterSpacing: "0.06em",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      #{order.id.slice(0, 8).toUpperCase()}
-                    </span>
+                    {/* Order ID with copy button — replaces truncated plain text */}
+                    <div className="flex items-center gap-2">
+                      <span
+                        style={{
+                          fontFamily:    "var(--font-body)",
+                          fontSize:      "0.7rem",
+                          fontWeight:    600,
+                          color:         "#aaaaaa",
+                          letterSpacing: "0.06em",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        #{order.id.slice(0, 8).toUpperCase()}
+                      </span>
+                      <CopyButton text={order.id} />
+                    </div>
                   </div>
 
                   {/* Data size */}
@@ -191,10 +234,10 @@ function TrackPage() {
                     </span>
                     <span
                       style={{
-                        fontFamily: "var(--font-hero)",
-                        fontWeight: 700,
-                        fontSize:   "1.1rem",
-                        color:      "#111111",
+                        fontFamily:    "var(--font-hero)",
+                        fontWeight:    700,
+                        fontSize:      "1.1rem",
+                        color:         "#111111",
                         paddingBottom: "4px",
                       }}
                     >
@@ -212,7 +255,7 @@ function TrackPage() {
                         fontWeight: 500,
                       }}
                     >
-                      → {order.recipient_phone}
+                      &rarr; {order.recipient_phone}
                     </span>
                     <span
                       style={{
@@ -260,18 +303,18 @@ function TrackPage() {
 
                       return (
                         <li key={step.key} className="flex gap-4">
-                          {/* Dot + connector */}
+                          {/* Dot + connector line */}
                           <div className="flex flex-col items-center" style={{ width: "20px", flexShrink: 0 }}>
                             <span
                               style={{
-                                width:      "20px",
-                                height:     "20px",
-                                borderRadius: "50%",
-                                flexShrink: 0,
-                                display:    "flex",
-                                alignItems: "center",
+                                width:          "20px",
+                                height:         "20px",
+                                borderRadius:   "50%",
+                                flexShrink:     0,
+                                display:        "flex",
+                                alignItems:     "center",
                                 justifyContent: "center",
-                                background: done
+                                background:     done
                                   ? "#22c55e"
                                   : current
                                     ? "#e65100"
@@ -290,20 +333,20 @@ function TrackPage() {
                             {!isLast && (
                               <div
                                 style={{
-                                  width:      "2px",
-                                  flex:       "1 1 0",
-                                  minHeight:  "28px",
-                                  background: done ? "#22c55e" : "rgba(0,0,0,0.07)",
-                                  marginTop:  "3px",
+                                  width:        "2px",
+                                  flex:         "1 1 0",
+                                  minHeight:    "28px",
+                                  background:   done ? "#22c55e" : "rgba(0,0,0,0.07)",
+                                  marginTop:    "3px",
                                   marginBottom: "3px",
                                   borderRadius: "1px",
-                                  transition: "background 0.3s",
+                                  transition:   "background 0.3s",
                                 }}
                               />
                             )}
                           </div>
 
-                          {/* Label */}
+                          {/* Step label */}
                           <div style={{ paddingBottom: isLast ? 0 : "20px", paddingTop: "1px" }}>
                             <p
                               style={{
@@ -336,6 +379,7 @@ function TrackPage() {
 
               {/* ── Status panel ── */}
               {delivered ? (
+                /* SUCCESS — PackageCheck icon replaces ✅ emoji */
                 <div
                   className="rounded-3xl p-5"
                   style={{
@@ -343,16 +387,31 @@ function TrackPage() {
                     border:     "1px solid rgba(34,197,94,0.20)",
                   }}
                 >
-                  <div
-                    style={{
-                      fontFamily: "var(--font-heading)",
-                      fontWeight: 700,
-                      fontSize:   "0.95rem",
-                      color:      "#16a34a",
-                      marginBottom: "8px",
-                    }}
-                  >
-                    ✅ Data delivered successfully
+                  <div className="flex items-center gap-2 mb-2">
+                    <span
+                      style={{
+                        display:        "flex",
+                        alignItems:     "center",
+                        justifyContent: "center",
+                        width:          "28px",
+                        height:         "28px",
+                        borderRadius:   "50%",
+                        background:     "rgba(34,197,94,0.12)",
+                        flexShrink:     0,
+                      }}
+                    >
+                      <PackageCheck style={{ width: "14px", height: "14px", color: "#16a34a" }} />
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: "var(--font-heading)",
+                        fontWeight: 700,
+                        fontSize:   "0.95rem",
+                        color:      "#16a34a",
+                      }}
+                    >
+                      Data delivered successfully
+                    </span>
                   </div>
                   <p style={{ fontFamily: "var(--font-body)", fontSize: "0.78rem", color: "#555", lineHeight: 1.6 }}>
                     Check your balance: dial{" "}
@@ -362,6 +421,7 @@ function TrackPage() {
                   </p>
                 </div>
               ) : failed ? (
+                /* FAILED — PackageX icon replaces ❌ emoji */
                 <div
                   className="rounded-3xl p-5"
                   style={{
@@ -369,19 +429,35 @@ function TrackPage() {
                     border:     "1px solid rgba(239,68,68,0.20)",
                   }}
                 >
-                  <div
-                    style={{
-                      fontFamily: "var(--font-heading)",
-                      fontWeight: 700,
-                      fontSize:   "0.95rem",
-                      color:      "#dc2626",
-                      marginBottom: "8px",
-                    }}
-                  >
-                    ❌ Delivery hit a snag
+                  <div className="flex items-center gap-2 mb-2">
+                    <span
+                      style={{
+                        display:        "flex",
+                        alignItems:     "center",
+                        justifyContent: "center",
+                        width:          "28px",
+                        height:         "28px",
+                        borderRadius:   "50%",
+                        background:     "rgba(239,68,68,0.10)",
+                        flexShrink:     0,
+                      }}
+                    >
+                      <PackageX style={{ width: "14px", height: "14px", color: "#dc2626" }} />
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: "var(--font-heading)",
+                        fontWeight: 700,
+                        fontSize:   "0.95rem",
+                        color:      "#dc2626",
+                      }}
+                    >
+                      Delivery hit a snag
+                    </span>
                   </div>
                   <p style={{ fontFamily: "var(--font-body)", fontSize: "0.78rem", color: "#555", lineHeight: 1.6, marginBottom: "14px" }}>
-                    {order.notes || "The carrier rejected the request."} We've been notified and will retry or refund within minutes.
+                    {order.notes?.replace(/\[ip:[^\]]+\]/g, "").trim() || "The carrier rejected the request."}{" "}
+                    We&apos;ve been notified and will retry or refund within minutes.
                   </p>
                   <a
                     href={`https://wa.me/233500843914?text=${encodeURIComponent(`Hi, my order ${order.id.slice(0, 8)} failed. Can you help?`)}`}
@@ -389,13 +465,13 @@ function TrackPage() {
                     rel="noreferrer"
                     className="inline-flex items-center gap-2"
                     style={{
-                      background:    "#25D366",
-                      color:         "#ffffff",
-                      fontFamily:    "var(--font-heading)",
-                      fontWeight:    700,
-                      fontSize:      "0.8rem",
-                      padding:       "9px 18px",
-                      borderRadius:  "9999px",
+                      background:     "#25D366",
+                      color:          "#ffffff",
+                      fontFamily:     "var(--font-heading)",
+                      fontWeight:     700,
+                      fontSize:       "0.8rem",
+                      padding:        "9px 18px",
+                      borderRadius:   "9999px",
                       textDecoration: "none",
                     }}
                   >
@@ -404,6 +480,7 @@ function TrackPage() {
                   </a>
                 </div>
               ) : (
+                /* IN-PROGRESS — shimmer bar */
                 <div
                   className="rounded-3xl p-5"
                   style={{
@@ -411,7 +488,6 @@ function TrackPage() {
                     border:     "1px solid rgba(0,0,0,0.07)",
                   }}
                 >
-                  {/* Shimmer progress bar */}
                   <div
                     style={{
                       height:       "3px",
@@ -423,22 +499,22 @@ function TrackPage() {
                   >
                     <div
                       style={{
-                        height:     "100%",
-                        width:      "40%",
-                        borderRadius: "9999px",
-                        background: "linear-gradient(90deg, #e65100, #f37d01, #e65100)",
+                        height:         "100%",
+                        width:          "40%",
+                        borderRadius:   "9999px",
+                        background:     "linear-gradient(90deg, #e65100, #f37d01, #e65100)",
                         backgroundSize: "200% 100%",
-                        animation:  "gold-shimmer 1.4s linear infinite",
+                        animation:      "gold-shimmer 1.4s linear infinite",
                       }}
                     />
                   </div>
 
                   <p
                     style={{
-                      fontFamily: "var(--font-heading)",
-                      fontWeight: 600,
-                      fontSize:   "0.85rem",
-                      color:      "#111",
+                      fontFamily:   "var(--font-heading)",
+                      fontWeight:   600,
+                      fontSize:     "0.85rem",
+                      color:        "#111",
                       marginBottom: "4px",
                     }}
                   >
@@ -463,10 +539,10 @@ function TrackPage() {
                     >
                       <p
                         style={{
-                          fontFamily: "var(--font-heading)",
-                          fontWeight: 600,
-                          fontSize:   "0.78rem",
-                          color:      "#b45309",
+                          fontFamily:   "var(--font-heading)",
+                          fontWeight:   600,
+                          fontSize:     "0.78rem",
+                          color:        "#b45309",
                           marginBottom: "4px",
                         }}
                       >
@@ -481,13 +557,13 @@ function TrackPage() {
                         rel="noreferrer"
                         className="inline-flex items-center gap-1.5"
                         style={{
-                          background:    "#25D366",
-                          color:         "#ffffff",
-                          fontFamily:    "var(--font-heading)",
-                          fontWeight:    700,
-                          fontSize:      "0.75rem",
-                          padding:       "7px 16px",
-                          borderRadius:  "9999px",
+                          background:     "#25D366",
+                          color:          "#ffffff",
+                          fontFamily:     "var(--font-heading)",
+                          fontWeight:     700,
+                          fontSize:       "0.75rem",
+                          padding:        "7px 16px",
+                          borderRadius:   "9999px",
                           textDecoration: "none",
                         }}
                       >
@@ -515,16 +591,16 @@ function TrackPage() {
                   rel="noreferrer"
                   className="inline-flex items-center justify-center gap-1.5"
                   style={{
-                    padding:       "12px 16px",
-                    borderRadius:  "9999px",
-                    border:        "1.5px solid rgba(0,0,0,0.12)",
-                    background:    "#ffffff",
-                    fontFamily:    "var(--font-heading)",
-                    fontWeight:    600,
-                    fontSize:      "0.82rem",
-                    color:         "#111",
+                    padding:        "12px 16px",
+                    borderRadius:   "9999px",
+                    border:         "1.5px solid rgba(0,0,0,0.12)",
+                    background:     "#ffffff",
+                    fontFamily:     "var(--font-heading)",
+                    fontWeight:     600,
+                    fontSize:       "0.82rem",
+                    color:          "#111",
                     textDecoration: "none",
-                    whiteSpace:    "nowrap",
+                    whiteSpace:     "nowrap",
                   }}
                 >
                   <MessageCircle style={{ width: "15px", height: "15px", color: "#25D366" }} />
