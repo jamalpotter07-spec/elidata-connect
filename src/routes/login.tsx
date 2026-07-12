@@ -43,8 +43,12 @@ function LoginPage() {
 
   return (
     <div
-      className="relative min-h-screen flex items-center justify-center px-4" style={{ paddingTop:"max(96px,10vh)", paddingBottom:"80px" }}
-      style={{ background: "linear-gradient(160deg, #0a1628 0%, #0d1117 50%, rgba(0,102,255,0.08) 100%)" }}
+      className="relative min-h-screen flex items-center justify-center px-4"
+      style={{
+        paddingTop:    "max(96px,10vh)",
+        paddingBottom: "80px",
+        background:    "linear-gradient(160deg, #0a1628 0%, #0d1117 50%, rgba(0,102,255,0.08) 100%)",
+      }}
     >
       {/* Aurora blobs */}
       <div className="aurora-blob pointer-events-none" style={{ width: 380, height: 380, background: "rgba(0,102,255,0.22)", top: "10%", right: "5%", position: "fixed" }} />
