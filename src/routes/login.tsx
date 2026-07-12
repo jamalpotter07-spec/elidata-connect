@@ -43,7 +43,7 @@ function LoginPage() {
 
   return (
     <div
-      className="relative min-h-screen flex items-center justify-center px-4 py-16"
+      className="relative min-h-screen flex items-center justify-center px-4" style={{ paddingTop:"max(96px,10vh)", paddingBottom:"80px" }}
       style={{ background: "linear-gradient(160deg, #0a1628 0%, #0d1117 50%, rgba(0,102,255,0.08) 100%)" }}
     >
       {/* Aurora blobs */}

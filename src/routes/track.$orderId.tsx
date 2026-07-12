@@ -133,7 +133,7 @@ function TrackPage() {
         style={{
           minHeight:     "100svh",
           background:    "var(--background)",
-          paddingTop:    "80px",
+          paddingTop:    "96px",
           paddingBottom: "100px",
         }}
       >

@@ -16,7 +16,7 @@ function DashboardPage() {
 
   return (
     <main
-      className="min-h-screen pt-20 pb-24 lg:pb-10 px-4"
+      className="min-h-screen pt-24 pb-24 lg:pb-10 px-4"
       style={{ background: "var(--color-background)" }}
     >
       <div className="container mx-auto max-w-3xl py-8">

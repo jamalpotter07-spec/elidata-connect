@@ -39,7 +39,7 @@ function AboutPage() {
     <div className="bg-white text-zinc-900 [color-scheme:light]">
       <NavBar hideThemeToggle />
 
-      <main className="mx-auto w-full max-w-7xl min-w-0 overflow-hidden pb-20">
+      <main style={{ paddingTop:"96px" }} className="mx-auto w-full max-w-7xl min-w-0 overflow-hidden pb-20">
         <section className="border-b">
           <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)] lg:items-center lg:gap-12 lg:py-18 xl:py-20">
             <div className="min-w-0 max-w-3xl">

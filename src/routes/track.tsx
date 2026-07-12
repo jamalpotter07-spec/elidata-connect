@@ -148,7 +148,7 @@ function TrackSearchPage() {
         style={{
           minHeight:     "100svh",
           background:    "var(--background)",
-          paddingTop:    "88px",
+          paddingTop:    "96px",
           paddingBottom: "100px",
         }}
       >

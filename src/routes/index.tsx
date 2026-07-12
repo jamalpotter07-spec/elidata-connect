@@ -120,7 +120,7 @@ function HomePage() {
 
           {/* Content */}
           <div
-            className="relative flex flex-col justify-center px-5 py-16 md:py-24 max-w-2xl mx-auto"
+            className="relative flex flex-col justify-center px-5 max-w-2xl mx-auto" style={{ paddingTop:"clamp(96px,14vw,140px)", paddingBottom:"clamp(48px,8vw,96px)" }}
             style={{ zIndex: 2, animation: "slide-up 0.65s cubic-bezier(0.22,1,0.36,1) both" }}
           >
             {/* Network strip */}

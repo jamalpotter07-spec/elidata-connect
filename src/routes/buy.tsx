@@ -284,7 +284,7 @@ function BuyPage() {
 
       <main
         style={{
-          paddingTop:    "80px",
+          paddingTop:    "96px",
           paddingBottom: "100px",
           minHeight:     "100svh",
           background:    "var(--background)",

@@ -46,7 +46,7 @@ function SignupPage() {
   };
 
   return (
-    <div className="container mx-auto flex min-h-[80vh] max-w-md items-center px-4">
+    <div className="container mx-auto flex min-h-[100svh] max-w-md items-center px-4" style={{ paddingTop:"96px", paddingBottom:"80px" }}>
       <Card className="w-full">
         <CardHeader>
           <CardTitle>Create account</CardTitle>
