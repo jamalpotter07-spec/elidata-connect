@@ -25,9 +25,9 @@ function OrderDetailPage() {
     refetchInterval: 3000,
   });
 
-  if (isLoading) return <main className="container mx-auto px-4 py-8">Loading…</main>;
+  if (isLoading) return <main className="container mx-auto px-4 py-8" style={{ paddingTop: "96px" }}>Loading…</main>;
   const o = data?.order;
-  if (!o) return <main className="container mx-auto px-4 py-8">Order not found.</main>;
+  if (!o) return <main className="container mx-auto px-4 py-8" style={{ paddingTop: "96px" }}>Order not found.</main>;
 
   const onReorder = async () => {
     setBusy(true);
@@ -44,7 +44,7 @@ function OrderDetailPage() {
   };
 
   return (
-    <main className="container mx-auto max-w-2xl px-4 py-8">
+    <main className="container mx-auto max-w-2xl px-4 py-8" style={{ paddingTop: "96px" }}>
       <Button variant="ghost" asChild><Link to="/orders">← Back to orders</Link></Button>
       <Card className="mt-4">
         <CardHeader>

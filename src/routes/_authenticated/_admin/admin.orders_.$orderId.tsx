@@ -43,7 +43,7 @@ function AdminOrderDetail() {
   }, [data?.order]);
 
   if (isLoading || !data?.order) {
-    return <main className="container mx-auto px-4 py-8">Loading…</main>;
+    return <main className="container mx-auto px-4 py-8" style={{ paddingTop: "96px" }}>Loading…</main>;
   }
   const o = data.order;
 
@@ -70,7 +70,7 @@ function AdminOrderDetail() {
   };
 
   return (
-    <main className="container mx-auto px-4 py-8 space-y-6">
+    <main className="container mx-auto px-4 py-8 space-y-6" style={{ paddingTop: "96px" }}>
       <div>
         <Button asChild variant="ghost" size="sm"><Link to="/admin/orders"><ArrowLeft className="h-4 w-4 mr-1" /> All orders</Link></Button>
       </div>

@@ -46,7 +46,7 @@ function AdminHome() {
   const avgMargin = totalPrice > 0 ? (((totalPrice - totalCost) / totalPrice) * 100).toFixed(0) + "%" : "—";
 
   return (
-    <main className="container mx-auto px-4 py-6 space-y-6">
+    <main className="container mx-auto px-4 py-6 space-y-6" style={{ paddingTop: "96px" }}>
       {/* Manual order — always at the very top so it's reachable on mobile without scrolling */}
       <ManualOrderCard />
 

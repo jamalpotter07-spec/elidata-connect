@@ -52,7 +52,7 @@ function AdminOrders() {
     : !!cursor;
 
   return (
-    <main className="container mx-auto px-4 py-8 space-y-6">
+    <main className="container mx-auto px-4 py-8 space-y-6" style={{ paddingTop: "96px" }}>
       <ManualOrderCard />
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">All orders</h1>

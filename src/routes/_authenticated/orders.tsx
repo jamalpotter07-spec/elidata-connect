@@ -13,7 +13,7 @@ function OrdersPage() {
   const orders = data?.orders ?? [];
 
   return (
-    <main className="container mx-auto px-4 py-8">
+    <main className="container mx-auto px-4 py-8" style={{ paddingTop: "96px" }}>
       <h1 className="text-2xl font-bold">My orders</h1>
       <div className="mt-6 rounded-lg border">
         <Table>
