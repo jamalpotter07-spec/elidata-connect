@@ -67,22 +67,38 @@ function maskedPhone(phone: string): string {
   return phone;
 }
 
+// Build the tracking link for an order, if PUBLIC_APP_URL is configured.
+// Silently omitted from the SMS (not a placeholder/broken link) when unset,
+// mirroring how sendSms() silently no-ops without ARKESEL_API_KEY.
+function trackingUrlFor(orderId: string): string | null {
+  const base = process.env.PUBLIC_APP_URL;
+  if (!base) return null;
+  return `${base.replace(/\/+$/, "")}/track/${orderId}`;
+}
+
 // Build the carrier-style delivery SMS. These mimic the wording each
-// Ghanaian network uses when a bundle is credited to a number.
-function deliveryMessage(network: string, dataMb: number, phone: string): string {
+// Ghanaian network uses when a bundle is credited to a number, with an
+// optional tracking link appended as its own line.
+function deliveryMessage(
+  network: string,
+  dataMb: number,
+  phone: string,
+  trackingUrl: string | null,
+): string {
   const vol = formatVolume(dataMb);
   const masked = maskedPhone(phone);
   const n = network.toUpperCase();
+  let base: string;
   if (n === "MTN") {
-    return `Dear Customer, your data bundle of ${vol} has been successfully credited to ${masked}. Dial *138# to check your balance. Thank you for choosing MTN.`;
+    base = `Dear Customer, your data bundle of ${vol} has been successfully credited to ${masked}. Dial *138# to check your balance. Thank you for choosing MTN.`;
+  } else if (n === "TELECEL") {
+    base = `Dear Telecel Customer, ${vol} data bundle has been credited to ${masked}. Dial *124# to check your data balance. Thank you for choosing Telecel Ghana.`;
+  } else if (n === "AT") {
+    base = `Hi, ${vol} data bundle has been credited to your AirtelTigo line ${masked}. Dial *134# to check your balance. Enjoy!`;
+  } else {
+    base = `Your ${vol} ${network} data bundle has been credited to ${masked}. Thank you.`;
   }
-  if (n === "TELECEL") {
-    return `Dear Telecel Customer, ${vol} data bundle has been credited to ${masked}. Dial *124# to check your data balance. Thank you for choosing Telecel Ghana.`;
-  }
-  if (n === "AT") {
-    return `Hi, ${vol} data bundle has been credited to your AirtelTigo line ${masked}. Dial *134# to check your balance. Enjoy!`;
-  }
-  return `Your ${vol} ${network} data bundle has been credited to ${masked}. Thank you.`;
+  return trackingUrl ? `${base} Track: ${trackingUrl}` : base;
 }
 
 export function deliveredSms(opts: {
@@ -91,7 +107,10 @@ export function deliveredSms(opts: {
   dataMb: number;
   orderId: string;
 }) {
-  return sendSms(opts.phone, deliveryMessage(opts.network, opts.dataMb, opts.phone), {
-    sender: senderFor(opts.network),
-  });
+  const trackingUrl = trackingUrlFor(opts.orderId);
+  return sendSms(
+    opts.phone,
+    deliveryMessage(opts.network, opts.dataMb, opts.phone, trackingUrl),
+    { sender: senderFor(opts.network) },
+  );
 }
