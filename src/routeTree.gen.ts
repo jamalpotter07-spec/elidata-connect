@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TrackRouteImport } from './routes/track'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -18,7 +19,6 @@ import { Route as BuyRouteImport } from './routes/buy'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as TrackRouteImport } from './routes/track'
 import { Route as TrackOrderIdRouteImport } from './routes/track.$orderId'
 import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -27,8 +27,8 @@ import { Route as AuthenticatedOrdersOrderIdRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminAdminIndexRouteImport } from './routes/_authenticated/_admin/admin.index'
 import { Route as ApiPublicHooksTelegramSetupRouteImport } from './routes/api/public/hooks/telegram-setup'
 import { Route as ApiPublicHooksTelegramRouteImport } from './routes/api/public/hooks/telegram'
-import { Route as ApiPublicHooksPaystackRouteImport } from './routes/api/public/hooks/paystack'
 import { Route as ApiPublicHooksRetryFailedRouteImport } from './routes/api/public/hooks/retry-failed'
+import { Route as ApiPublicHooksPaystackRouteImport } from './routes/api/public/hooks/paystack'
 import { Route as ApiPublicHooksDailyProfitRouteImport } from './routes/api/public/hooks/daily-profit'
 import { Route as ApiPublicHooksBalanceCheckRouteImport } from './routes/api/public/hooks/balance-check'
 import { Route as AuthenticatedAdminAdminUsersRouteImport } from './routes/_authenticated/_admin/admin.users'
@@ -36,6 +36,11 @@ import { Route as AuthenticatedAdminAdminOrdersRouteImport } from './routes/_aut
 import { Route as AuthenticatedAdminAdminBundlesRouteImport } from './routes/_authenticated/_admin/admin.bundles'
 import { Route as AuthenticatedAdminAdminOrdersOrderIdRouteImport } from './routes/_authenticated/_admin/admin.orders_.$orderId'
 
+const TrackRoute = TrackRouteImport.update({
+  id: '/track',
+  path: '/track',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
@@ -80,15 +85,10 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TrackRoute = TrackRouteImport.update({
-  id: '/track',
-  path: '/track',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const TrackOrderIdRoute = TrackOrderIdRouteImport.update({
-  id: '/track/$orderId',
-  path: '/track/$orderId',
-  getParentRoute: () => rootRouteImport,
+  id: '/$orderId',
+  path: '/$orderId',
+  getParentRoute: () => TrackRoute,
 } as any)
 const AuthenticatedOrdersRoute = AuthenticatedOrdersRouteImport.update({
   id: '/orders',
@@ -127,17 +127,17 @@ const ApiPublicHooksTelegramRoute = ApiPublicHooksTelegramRouteImport.update({
   path: '/api/public/hooks/telegram',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicHooksPaystackRoute = ApiPublicHooksPaystackRouteImport.update({
-  id: '/api/public/hooks/paystack',
-  path: '/api/public/hooks/paystack',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiPublicHooksRetryFailedRoute =
   ApiPublicHooksRetryFailedRouteImport.update({
     id: '/api/public/hooks/retry-failed',
     path: '/api/public/hooks/retry-failed',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksPaystackRoute = ApiPublicHooksPaystackRouteImport.update({
+  id: '/api/public/hooks/paystack',
+  path: '/api/public/hooks/paystack',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksDailyProfitRoute =
   ApiPublicHooksDailyProfitRouteImport.update({
     id: '/api/public/hooks/daily-profit',
@@ -184,9 +184,9 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
+  '/track': typeof TrackRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/orders': typeof AuthenticatedOrdersRouteWithChildren
-  '/track': typeof TrackRoute
   '/track/$orderId': typeof TrackOrderIdRoute
   '/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/admin/bundles': typeof AuthenticatedAdminAdminBundlesRoute
@@ -210,9 +210,9 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
+  '/track': typeof TrackRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/orders': typeof AuthenticatedOrdersRouteWithChildren
-  '/track': typeof TrackRoute
   '/track/$orderId': typeof TrackOrderIdRoute
   '/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/admin/bundles': typeof AuthenticatedAdminAdminBundlesRoute
@@ -238,10 +238,10 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
+  '/track': typeof TrackRouteWithChildren
   '/_authenticated/_admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/orders': typeof AuthenticatedOrdersRouteWithChildren
-  '/track': typeof TrackRoute
   '/track/$orderId': typeof TrackOrderIdRoute
   '/_authenticated/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/_authenticated/_admin/admin/bundles': typeof AuthenticatedAdminAdminBundlesRoute
@@ -267,9 +267,9 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/terms'
+    | '/track'
     | '/dashboard'
     | '/orders'
-    | '/track'
     | '/track/$orderId'
     | '/orders/$orderId'
     | '/admin/bundles'
@@ -293,9 +293,9 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/terms'
+    | '/track'
     | '/dashboard'
     | '/orders'
-    | '/track'
     | '/track/$orderId'
     | '/orders/$orderId'
     | '/admin/bundles'
@@ -304,6 +304,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/balance-check'
     | '/api/public/hooks/daily-profit'
     | '/api/public/hooks/paystack'
+    | '/api/public/hooks/retry-failed'
     | '/api/public/hooks/telegram'
     | '/api/public/hooks/telegram-setup'
     | '/admin'
@@ -319,10 +320,10 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/terms'
+    | '/track'
     | '/_authenticated/_admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/orders'
-    | '/track'
     | '/track/$orderId'
     | '/_authenticated/orders/$orderId'
     | '/_authenticated/_admin/admin/bundles'
@@ -348,8 +349,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
   TermsRoute: typeof TermsRoute
-  TrackRoute: typeof TrackRoute
-  TrackOrderIdRoute: typeof TrackOrderIdRoute
+  TrackRoute: typeof TrackRouteWithChildren
   ApiPublicHooksBalanceCheckRoute: typeof ApiPublicHooksBalanceCheckRoute
   ApiPublicHooksDailyProfitRoute: typeof ApiPublicHooksDailyProfitRoute
   ApiPublicHooksPaystackRoute: typeof ApiPublicHooksPaystackRoute
@@ -360,6 +360,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/track': {
+      id: '/track'
+      path: '/track'
+      fullPath: '/track'
+      preLoaderRoute: typeof TrackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/terms': {
       id: '/terms'
       path: '/terms'
@@ -423,19 +430,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/track': {
-      id: '/track'
-      path: '/track'
-      fullPath: '/track'
-      preLoaderRoute: typeof TrackRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/track/$orderId': {
       id: '/track/$orderId'
-      path: '/track/$orderId'
+      path: '/$orderId'
       fullPath: '/track/$orderId'
       preLoaderRoute: typeof TrackOrderIdRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof TrackRoute
     }
     '/_authenticated/orders': {
       id: '/_authenticated/orders'
@@ -486,18 +486,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksTelegramRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/hooks/paystack': {
-      id: '/api/public/hooks/paystack'
-      path: '/api/public/hooks/paystack'
-      fullPath: '/api/public/hooks/paystack'
-      preLoaderRoute: typeof ApiPublicHooksPaystackRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/hooks/retry-failed': {
       id: '/api/public/hooks/retry-failed'
       path: '/api/public/hooks/retry-failed'
       fullPath: '/api/public/hooks/retry-failed'
       preLoaderRoute: typeof ApiPublicHooksRetryFailedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/paystack': {
+      id: '/api/public/hooks/paystack'
+      path: '/api/public/hooks/paystack'
+      fullPath: '/api/public/hooks/paystack'
+      preLoaderRoute: typeof ApiPublicHooksPaystackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/daily-profit': {
@@ -592,6 +592,16 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface TrackRouteChildren {
+  TrackOrderIdRoute: typeof TrackOrderIdRoute
+}
+
+const TrackRouteChildren: TrackRouteChildren = {
+  TrackOrderIdRoute: TrackOrderIdRoute,
+}
+
+const TrackRouteWithChildren = TrackRoute._addFileChildren(TrackRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
@@ -602,8 +612,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
   TermsRoute: TermsRoute,
-  TrackRoute: TrackRoute,
-  TrackOrderIdRoute: TrackOrderIdRoute,
+  TrackRoute: TrackRouteWithChildren,
   ApiPublicHooksBalanceCheckRoute: ApiPublicHooksBalanceCheckRoute,
   ApiPublicHooksDailyProfitRoute: ApiPublicHooksDailyProfitRoute,
   ApiPublicHooksPaystackRoute: ApiPublicHooksPaystackRoute,
@@ -614,3 +623,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
