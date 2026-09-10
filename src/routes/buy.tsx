@@ -236,8 +236,10 @@ function SkeletonGrid() {
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 export const Route = createFileRoute("/buy")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    network: (search.network as Network) ?? "MTN",
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { network?: Network } => ({
+    network: (search.network as Network | undefined) ?? undefined,
   }),
   component: BuyPage,
   head: () => ({
