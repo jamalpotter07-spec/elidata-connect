@@ -257,7 +257,7 @@ export const Route = createFileRoute("/buy")({
 function BuyPage() {
   const navigate          = useNavigate();
   const { network: init } = Route.useSearch();
-  const [activeNet,     setActiveNet]     = useState<Network>(init);
+  const [activeNet,     setActiveNet]     = useState<Network>(init ?? "MTN");
   const [selected,      setSelected]      = useState<Bundle | null>(null);
   const [checkoutOpen,  setCheckoutOpen]  = useState(false);
 
