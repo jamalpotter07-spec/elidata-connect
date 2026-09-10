@@ -236,8 +236,10 @@ function SkeletonGrid() {
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 export const Route = createFileRoute("/buy")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    network: (search.network as Network) ?? "MTN",
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { network?: Network } => ({
+    network: (search.network as Network | undefined) ?? undefined,
   }),
   component: BuyPage,
   head: () => ({
@@ -255,7 +257,7 @@ export const Route = createFileRoute("/buy")({
 function BuyPage() {
   const navigate          = useNavigate();
   const { network: init } = Route.useSearch();
-  const [activeNet,     setActiveNet]     = useState<Network>(init);
+  const [activeNet,     setActiveNet]     = useState<Network>(init ?? "MTN");
   const [selected,      setSelected]      = useState<Bundle | null>(null);
   const [checkoutOpen,  setCheckoutOpen]  = useState(false);
 
