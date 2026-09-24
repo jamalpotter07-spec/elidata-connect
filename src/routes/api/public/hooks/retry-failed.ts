@@ -1,19 +1,22 @@
-// Auto-retry hook for failed Mobigh deliveries.
-// Called by a Cloudflare Cron Trigger every 5 minutes (configure in wrangler.jsonc).
-// Logic:
-//   • Picks up orders with status "failed" and retry_count < MAX_RETRIES
-//   • Attempts Mobigh fulfillment again
-//   • On success → marks "delivered", sends SMS + Telegram notification
-//   • On failure → increments retry_count via DB column (patch-3);
-//     if retry_count reaches MAX_RETRIES → marks "failed" permanently
-//     and sends a Telegram alert for manual intervention
+// Auto-retry hook for failed Hubnet deliveries.
+// Called by a Cloudflare Cron Trigger every 5 minutes (see wrangler.jsonc /
+// src/server.ts `scheduled` handler).
 //
-// PATCH 3: retry_count is now a proper integer column on orders (no more
-// "[retries:N]" string parsing in notes). The migration backfills existing rows.
+// Two queues, both funnelled through the same per-order handling logic:
 //
-// To wire up the cron, add to wrangler.jsonc:
-//   "triggers": { "crons": ["*/5 * * * *"] }
-// And in src/server.ts export a `scheduled` handler that POSTs to this route.
+//   1. status = "failed" AND retry_count < MAX_RETRIES        (original behaviour)
+//   2. status = "processing" AND stuck for > STUCK_PROCESSING_MINUTES   (BUG FIX)
+//
+// BUG FIX — queue 2 exists because this hook previously only ever queried
+// status="failed". If a request crashed or timed out after the order was
+// marked "processing" but before fulfill() returned, it became invisible
+// to this hook forever — stuck in "processing" with nobody ever retrying
+// or alerting on it. Queue 2 sweeps those up.
+//
+// Both queues route through fulfill()'s own idempotency safeguard (see
+// reseller.server.ts): a "pending" result means Hubnet hasn't resolved the
+// transaction yet, so we deliberately do NOT touch status or retry_count —
+// leaving the order to be picked up again on a later pass.
 //
 // The endpoint is also callable manually (admin convenience) with:
 //   POST /api/public/hooks/retry-failed
@@ -22,6 +25,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 const MAX_RETRIES = 3;
+const STUCK_PROCESSING_MINUTES = 10;
+
+type OrderRow = {
+  id: string;
+  network: "MTN" | "Telecel" | "AT";
+  data_mb: number;
+  recipient_phone: string;
+  notes: string | null;
+  amount_ghs: number;
+  retry_count: number;
+};
 
 export const Route = createFileRoute("/api/public/hooks/retry-failed")({
   server: {
@@ -41,40 +55,20 @@ export const Route = createFileRoute("/api/public/hooks/retry-failed")({
         const { notifyAdmin }   = await import("@/lib/notify.server");
         const { deliveredSms }  = await import("@/lib/sms.server");
 
-        // Query uses the real retry_count column — no string parsing.
-        const { data: failed, error } = await supabaseAdmin
-          .from("orders")
-          .select("id, network, data_mb, recipient_phone, notes, amount_ghs, retry_count")
-          .eq("status", "failed")
-          .lt("retry_count", MAX_RETRIES)   // DB-level filter replaces client-side skip
-          .order("created_at", { ascending: true })
-          .limit(20);
-
-        if (error) {
-          return Response.json({ ok: false, error: error.message }, { status: 500 });
-        }
-
-        const results: { id: string; outcome: string }[] = [];
-
-        for (const order of failed ?? []) {
+        async function processOrder(
+          order: OrderRow,
+          source: "failed-queue" | "stuck-processing",
+        ): Promise<{ id: string; outcome: string }> {
           const newRetryCount = (order.retry_count ?? 0) + 1;
 
-          // Mark as processing before attempting — reset retry_count increment
-          // happens on failure path only; success path clears it implicitly.
-          await supabaseAdmin
-            .from("orders")
-            .update({ status: "processing" })
-            .eq("id", order.id);
-
           const result = await fulfill({
-            network: order.network as any,
+            network: order.network,
             dataMb: order.data_mb,
             recipientPhone: order.recipient_phone,
             orderId: order.id,
           });
 
           if (result.ok) {
-            // Success — clear retry_count back to 0 and mark delivered
             await supabaseAdmin
               .from("orders")
               .update({
@@ -85,7 +79,7 @@ export const Route = createFileRoute("/api/public/hooks/retry-failed")({
               .eq("id", order.id);
 
             await notifyAdmin(
-              `Retry delivered (attempt ${newRetryCount}/${MAX_RETRIES})\n${order.network} ${(order.data_mb / 1024).toFixed(1)}GB to ${order.recipient_phone}\nRef: ${result.reference}`,
+              `Retry delivered (${source}, attempt ${newRetryCount}/${MAX_RETRIES})\n${order.network} ${(order.data_mb / 1024).toFixed(1)}GB to ${order.recipient_phone}\nRef: ${result.reference}`,
             );
             await deliveredSms({
               phone:   order.recipient_phone,
@@ -93,36 +87,83 @@ export const Route = createFileRoute("/api/public/hooks/retry-failed")({
               dataMb:  order.data_mb,
               orderId: order.id,
             });
-            results.push({ id: order.id, outcome: "delivered" });
-          } else {
-            // Failure — write retry_count to the real column
-            const isFinal = newRetryCount >= MAX_RETRIES;
-
-            // Strip old ip tag from notes so we don't keep leaking it into
-            // the failure reason; keep any human-readable error text.
-            const cleanNotes = (order.notes ?? "")
-              .replace(/\[ip:[^\]]+\]/g, "")
-              .trim();
-            const failureNote = `${cleanNotes} — ${result.error}`.replace(/^—\s*/, "").trim();
-
-            await supabaseAdmin
-              .from("orders")
-              .update({
-                status:      "failed",
-                retry_count: newRetryCount,
-                notes:       failureNote || null,
-              })
-              .eq("id", order.id);
-
-            if (isFinal) {
-              await notifyAdmin(
-                `Auto-retry exhausted (${MAX_RETRIES}/${MAX_RETRIES} attempts)\n${order.network} ${(order.data_mb / 1024).toFixed(1)}GB to ${order.recipient_phone}\nLast error: ${result.error}\nOrder: ${order.id.slice(0, 8)} — manual action required.`,
-              );
-              results.push({ id: order.id, outcome: "failed:exhausted" });
-            } else {
-              results.push({ id: order.id, outcome: `failed:retry_${newRetryCount}` });
-            }
+            return { id: order.id, outcome: "delivered" };
           }
+
+          if (result.pending) {
+            // Genuinely unresolved — do NOT mark failed, do NOT burn a
+            // retry attempt. Leave status/retry_count untouched; a later
+            // pass (queue 2, once it goes stale again) will re-check.
+            return { id: order.id, outcome: "still-pending" };
+          }
+
+          // Definitive failure.
+          const isFinal = newRetryCount >= MAX_RETRIES;
+          const cleanNotes = (order.notes ?? "")
+            .replace(/\[ip:[^\]]+\]/g, "")
+            .trim();
+          const failureNote = `${cleanNotes} — ${result.error}`.replace(/^—\s*/, "").trim();
+
+          await supabaseAdmin
+            .from("orders")
+            .update({
+              status:      "failed",
+              retry_count: newRetryCount,
+              notes:       failureNote || null,
+            })
+            .eq("id", order.id);
+
+          if (isFinal) {
+            await notifyAdmin(
+              `Auto-retry exhausted (${source}, ${MAX_RETRIES}/${MAX_RETRIES} attempts)\n${order.network} ${(order.data_mb / 1024).toFixed(1)}GB to ${order.recipient_phone}\nLast error: ${result.error}\nOrder: ${order.id.slice(0, 8)} — manual action required.`,
+            );
+            return { id: order.id, outcome: "failed:exhausted" };
+          }
+          return { id: order.id, outcome: `failed:retry_${newRetryCount}` };
+        }
+
+        const results: { id: string; outcome: string }[] = [];
+
+        // ---- Queue 1: explicitly failed orders (original behaviour) -------
+        const { data: failed, error: failedErr } = await supabaseAdmin
+          .from("orders")
+          .select("id, network, data_mb, recipient_phone, notes, amount_ghs, retry_count")
+          .eq("status", "failed")
+          .lt("retry_count", MAX_RETRIES)
+          .order("created_at", { ascending: true })
+          .limit(20);
+
+        if (failedErr) {
+          return Response.json({ ok: false, error: failedErr.message }, { status: 500 });
+        }
+
+        for (const order of (failed ?? []) as OrderRow[]) {
+          await supabaseAdmin
+            .from("orders")
+            .update({ status: "processing" })
+            .eq("id", order.id);
+          results.push(await processOrder(order, "failed-queue"));
+        }
+
+        // ---- Queue 2: BUG FIX — orders stuck in "processing" ---------------
+        const staleCutoff = new Date(Date.now() - STUCK_PROCESSING_MINUTES * 60 * 1000).toISOString();
+        const { data: stuck, error: stuckErr } = await supabaseAdmin
+          .from("orders")
+          .select("id, network, data_mb, recipient_phone, notes, amount_ghs, retry_count")
+          .eq("status", "processing")
+          .lt("updated_at", staleCutoff)
+          .order("created_at", { ascending: true })
+          .limit(20);
+
+        if (stuckErr) {
+          return Response.json(
+            { ok: false, error: stuckErr.message, partial: results },
+            { status: 500 },
+          );
+        }
+
+        for (const order of (stuck ?? []) as OrderRow[]) {
+          results.push(await processOrder(order, "stuck-processing"));
         }
 
         return Response.json({

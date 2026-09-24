@@ -8,6 +8,7 @@ import {
   adminBulkAdjustPrices,
   adminSyncMobighPrices,
   adminMobighBalance,
+  adminHubnetBalance,
 } from "@/lib/admin.functions";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -44,9 +45,14 @@ function AdminBundles() {
   const del = useServerFn(adminDeleteBundle);
   const bulkAdjust = useServerFn(adminBulkAdjustPrices);
   const syncMobigh = useServerFn(adminSyncMobighPrices);
-  const fetchBalance = useServerFn(adminMobighBalance);
+  const fetchMobighBalance = useServerFn(adminMobighBalance);
+  const fetchHubnetBalance = useServerFn(adminHubnetBalance);
   const { data } = useQuery({ queryKey: ["admin-bundles"], queryFn: () => list() });
-  const balanceQ = useQuery({ queryKey: ["mobigh-balance"], queryFn: () => fetchBalance(), refetchInterval: 60_000 });
+  // Live delivery wallet — this is the one that determines whether orders
+  // will actually go through, so it's shown first / more prominently.
+  const hubnetBalanceQ = useQuery({ queryKey: ["hubnet-balance"], queryFn: () => fetchHubnetBalance(), refetchInterval: 60_000 });
+  // Pricing-catalog reference only — Mobigh no longer fulfills deliveries.
+  const mobighBalanceQ = useQuery({ queryKey: ["mobigh-balance"], queryFn: () => fetchMobighBalance(), refetchInterval: 60_000 });
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Bundle>(empty);
   const [pct, setPct] = useState<number>(20);
@@ -104,10 +110,13 @@ function AdminBundles() {
       <ManualOrderCard />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <h1 className="text-2xl font-bold">Bundles</h1>
           <span className="rounded-full border bg-muted/40 px-3 py-1 text-xs">
-            Mobigh wallet: <strong>{balanceQ.data ? `GHS ${balanceQ.data.balance.toFixed(2)}` : "…"}</strong>
+            Hubnet wallet: <strong>{hubnetBalanceQ.data ? `GHS ${hubnetBalanceQ.data.balance.toFixed(2)}` : "…"}</strong>
+          </span>
+          <span className="rounded-full border bg-muted/20 px-3 py-1 text-xs text-muted-foreground">
+            Mobigh (pricing) wallet: <strong>{mobighBalanceQ.data ? `GHS ${mobighBalanceQ.data.balance.toFixed(2)}` : "…"}</strong>
           </span>
         </div>
         <div className="flex items-center gap-2">
