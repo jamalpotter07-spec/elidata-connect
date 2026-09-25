@@ -5,7 +5,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { fulfill } from "./reseller.server";
 import { notifyAdmin } from "./notify.server";
 import { deliveredSms } from "./sms.server";
-import { listMobighPackages, getMobighBalance, mobighNetCode } from "./reseller-packages.server";
+import { listMobighPackages, getMobighBalance, mobighNetCode, getHubnetBalance } from "./reseller-packages.server";
 
 async function assertAdmin(userId: string) {
   const { data, error } = await supabaseAdmin
@@ -334,6 +334,9 @@ export const adminRetryDelivery = createServerFn({ method: "POST" })
       });
       return { ok: true, status: "delivered" as const };
     }
+    if (result.pending) {
+      return { ok: false, status: "processing" as const, error: result.error };
+    }
     await supabaseAdmin.from("orders")
       .update({ status: "failed", notes: result.error }).eq("id", order.id);
     await notifyAdmin(`🔁❌ <b>Retry failed</b> ${order.network} → ${order.recipient_phone}\n${result.error}`);
@@ -394,10 +397,11 @@ export const adminSyncMobighPrices = createServerFn({ method: "POST" })
         .eq("id", b.id);
       if (!upErr) updated++;
     }
-    await notifyAdmin(`🔄 <b>Mobigh sync</b>\nUpdated: ${updated}\nSkipped (no match): ${skipped}\nMargin: ${data.marginPercent}%`);
+    await notifyAdmin(`🔄 <b>Mobigh price sync</b>\nUpdated: ${updated}\nSkipped (no match): ${skipped}\nMargin: ${data.marginPercent}%`);
     return { ok: true, updated, skipped, packageCount: packages.length };
   });
 
+// Pricing-catalog reference only — Mobigh no longer fulfills deliveries.
 export const adminMobighBalance = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -406,11 +410,21 @@ export const adminMobighBalance = createServerFn({ method: "GET" })
     return { balance };
   });
 
+// Live delivery wallet — this is the one that determines whether orders
+// will actually go through.
+export const adminHubnetBalance = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.userId);
+    const balance = await getHubnetBalance();
+    return { balance };
+  });
+
 // ---------------------------------------------------------------------------
 // #8 FIX — Profit report now subtracts refunds from revenue.
 // Previously filtered to ["paid", "delivered"] which overstated revenue for
-// orders that were later refunded — Mobigh data was consumed at real cost but
-// the negative-amount refund payment row was never subtracted.
+// orders that were later refunded — the reseller API cost was consumed at
+// real cost but the negative-amount refund payment row was never subtracted.
 // Now: fetch all order IDs in range, join their payments, sum positives
 // (revenue) and negatives (refunds) separately, then net off.
 // ---------------------------------------------------------------------------
@@ -633,6 +647,10 @@ export const adminManualOrder = createServerFn({ method: "POST" })
         orderId: order.id,
       });
       return { ok: true, orderId: order.id, status: "delivered" as const };
+    }
+
+    if (result.pending) {
+      return { ok: false, orderId: order.id, status: "processing" as const, error: result.error };
     }
 
     await supabaseAdmin.from("orders")
