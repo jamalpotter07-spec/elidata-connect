@@ -9,70 +9,36 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
-import { Route as AboutRouteImport } from './routes/about'
-import { Route as BuyRouteImport } from './routes/buy'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as SignupRouteImport } from './routes/signup'
-import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TrackRouteImport } from './routes/track'
-import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/_admin'
-import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as BuyRouteImport } from './routes/buy'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as TrackOrderIdRouteImport } from './routes/track.$orderId'
+import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/_admin'
 import { Route as AuthenticatedOrdersOrderIdRouteImport } from './routes/_authenticated/orders.$orderId'
 import { Route as AuthenticatedAdminAdminIndexRouteImport } from './routes/_authenticated/_admin/admin.index'
-import { Route as AuthenticatedAdminAdminBundlesRouteImport } from './routes/_authenticated/_admin/admin.bundles'
-import { Route as AuthenticatedAdminAdminOrdersRouteImport } from './routes/_authenticated/_admin/admin.orders'
-import { Route as AuthenticatedAdminAdminUsersRouteImport } from './routes/_authenticated/_admin/admin.users'
-import { Route as ApiPublicHooksBalanceCheckRouteImport } from './routes/api/public/hooks/balance-check'
-import { Route as ApiPublicHooksDailyProfitRouteImport } from './routes/api/public/hooks/daily-profit'
-import { Route as ApiPublicHooksPaystackRouteImport } from './routes/api/public/hooks/paystack'
-import { Route as ApiPublicHooksRetryFailedRouteImport } from './routes/api/public/hooks/retry-failed'
-import { Route as ApiPublicHooksTelegramRouteImport } from './routes/api/public/hooks/telegram'
 import { Route as ApiPublicHooksTelegramSetupRouteImport } from './routes/api/public/hooks/telegram-setup'
+import { Route as ApiPublicHooksTelegramRouteImport } from './routes/api/public/hooks/telegram'
+import { Route as ApiPublicHooksRetryFailedRouteImport } from './routes/api/public/hooks/retry-failed'
+import { Route as ApiPublicHooksPaystackRouteImport } from './routes/api/public/hooks/paystack'
+import { Route as ApiPublicHooksDailyProfitRouteImport } from './routes/api/public/hooks/daily-profit'
+import { Route as ApiPublicHooksBalanceCheckRouteImport } from './routes/api/public/hooks/balance-check'
+import { Route as AuthenticatedAdminAdminUsersRouteImport } from './routes/_authenticated/_admin/admin.users'
+import { Route as AuthenticatedAdminAdminOrdersRouteImport } from './routes/_authenticated/_admin/admin.orders'
+import { Route as AuthenticatedAdminAdminBundlesRouteImport } from './routes/_authenticated/_admin/admin.bundles'
 import { Route as AuthenticatedAdminAdminOrdersOrderIdRouteImport } from './routes/_authenticated/_admin/admin.orders_.$orderId'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedRoute = AuthenticatedRouteImport.update({
-  id: '/_authenticated',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BuyRoute = BuyRouteImport.update({
-  id: '/buy',
-  path: '/buy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SignupRoute = SignupRouteImport.update({
-  id: '/signup',
-  path: '/signup',
+const TrackRoute = TrackRouteImport.update({
+  id: '/track',
+  path: '/track',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -80,13 +46,53 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TrackRoute = TrackRouteImport.update({
-  id: '/track',
-  path: '/track',
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
-  id: '/_admin',
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BuyRoute = BuyRouteImport.update({
+  id: '/buy',
+  path: '/buy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrackOrderIdRoute = TrackOrderIdRouteImport.update({
+  id: '/$orderId',
+  path: '/$orderId',
+  getParentRoute: () => TrackRoute,
+} as any)
+const AuthenticatedOrdersRoute = AuthenticatedOrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
@@ -94,15 +100,9 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedOrdersRoute = AuthenticatedOrdersRouteImport.update({
-  id: '/orders',
-  path: '/orders',
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/_admin',
   getParentRoute: () => AuthenticatedRoute,
-} as any)
-const TrackOrderIdRoute = TrackOrderIdRouteImport.update({
-  id: '/$orderId',
-  path: '/$orderId',
-  getParentRoute: () => TrackRoute,
 } as any)
 const AuthenticatedOrdersOrderIdRoute =
   AuthenticatedOrdersOrderIdRouteImport.update({
@@ -116,39 +116,15 @@ const AuthenticatedAdminAdminIndexRoute =
     path: '/admin/',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
-const AuthenticatedAdminAdminBundlesRoute =
-  AuthenticatedAdminAdminBundlesRouteImport.update({
-    id: '/admin/bundles',
-    path: '/admin/bundles',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminAdminOrdersRoute =
-  AuthenticatedAdminAdminOrdersRouteImport.update({
-    id: '/admin/orders',
-    path: '/admin/orders',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminAdminUsersRoute =
-  AuthenticatedAdminAdminUsersRouteImport.update({
-    id: '/admin/users',
-    path: '/admin/users',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const ApiPublicHooksBalanceCheckRoute =
-  ApiPublicHooksBalanceCheckRouteImport.update({
-    id: '/api/public/hooks/balance-check',
-    path: '/api/public/hooks/balance-check',
+const ApiPublicHooksTelegramSetupRoute =
+  ApiPublicHooksTelegramSetupRouteImport.update({
+    id: '/api/public/hooks/telegram-setup',
+    path: '/api/public/hooks/telegram-setup',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicHooksDailyProfitRoute =
-  ApiPublicHooksDailyProfitRouteImport.update({
-    id: '/api/public/hooks/daily-profit',
-    path: '/api/public/hooks/daily-profit',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksPaystackRoute = ApiPublicHooksPaystackRouteImport.update({
-  id: '/api/public/hooks/paystack',
-  path: '/api/public/hooks/paystack',
+const ApiPublicHooksTelegramRoute = ApiPublicHooksTelegramRouteImport.update({
+  id: '/api/public/hooks/telegram',
+  path: '/api/public/hooks/telegram',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicHooksRetryFailedRoute =
@@ -157,16 +133,40 @@ const ApiPublicHooksRetryFailedRoute =
     path: '/api/public/hooks/retry-failed',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicHooksTelegramRoute = ApiPublicHooksTelegramRouteImport.update({
-  id: '/api/public/hooks/telegram',
-  path: '/api/public/hooks/telegram',
+const ApiPublicHooksPaystackRoute = ApiPublicHooksPaystackRouteImport.update({
+  id: '/api/public/hooks/paystack',
+  path: '/api/public/hooks/paystack',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicHooksTelegramSetupRoute =
-  ApiPublicHooksTelegramSetupRouteImport.update({
-    id: '/api/public/hooks/telegram-setup',
-    path: '/api/public/hooks/telegram-setup',
+const ApiPublicHooksDailyProfitRoute =
+  ApiPublicHooksDailyProfitRouteImport.update({
+    id: '/api/public/hooks/daily-profit',
+    path: '/api/public/hooks/daily-profit',
     getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksBalanceCheckRoute =
+  ApiPublicHooksBalanceCheckRouteImport.update({
+    id: '/api/public/hooks/balance-check',
+    path: '/api/public/hooks/balance-check',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedAdminAdminUsersRoute =
+  AuthenticatedAdminAdminUsersRouteImport.update({
+    id: '/admin/users',
+    path: '/admin/users',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminAdminOrdersRoute =
+  AuthenticatedAdminAdminOrdersRouteImport.update({
+    id: '/admin/orders',
+    path: '/admin/orders',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminAdminBundlesRoute =
+  AuthenticatedAdminAdminBundlesRouteImport.update({
+    id: '/admin/bundles',
+    path: '/admin/bundles',
+    getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminAdminOrdersOrderIdRoute =
   AuthenticatedAdminAdminOrdersOrderIdRouteImport.update({
@@ -360,60 +360,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/buy': {
-      id: '/buy'
-      path: '/buy'
-      fullPath: '/buy'
-      preLoaderRoute: typeof BuyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/signup': {
-      id: '/signup'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof SignupRouteImport
+    '/track': {
+      id: '/track'
+      path: '/track'
+      fullPath: '/track'
+      preLoaderRoute: typeof TrackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -423,18 +374,74 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/track': {
-      id: '/track'
-      path: '/track'
-      fullPath: '/track'
-      preLoaderRoute: typeof TrackRouteImport
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/_admin': {
-      id: '/_authenticated/_admin'
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/buy': {
+      id: '/buy'
+      path: '/buy'
+      fullPath: '/buy'
+      preLoaderRoute: typeof BuyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
       path: ''
       fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/track/$orderId': {
+      id: '/track/$orderId'
+      path: '/$orderId'
+      fullPath: '/track/$orderId'
+      preLoaderRoute: typeof TrackOrderIdRouteImport
+      parentRoute: typeof TrackRoute
+    }
+    '/_authenticated/orders': {
+      id: '/_authenticated/orders'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof AuthenticatedOrdersRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/dashboard': {
@@ -444,19 +451,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/orders': {
-      id: '/_authenticated/orders'
-      path: '/orders'
-      fullPath: '/orders'
-      preLoaderRoute: typeof AuthenticatedOrdersRouteImport
+    '/_authenticated/_admin': {
+      id: '/_authenticated/_admin'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRoute
-    }
-    '/track/$orderId': {
-      id: '/track/$orderId'
-      path: '/$orderId'
-      fullPath: '/track/$orderId'
-      preLoaderRoute: typeof TrackOrderIdRouteImport
-      parentRoute: typeof TrackRoute
     }
     '/_authenticated/orders/$orderId': {
       id: '/_authenticated/orders/$orderId'
@@ -472,53 +472,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
-    '/_authenticated/_admin/admin/bundles': {
-      id: '/_authenticated/_admin/admin/bundles'
-      path: '/admin/bundles'
-      fullPath: '/admin/bundles'
-      preLoaderRoute: typeof AuthenticatedAdminAdminBundlesRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/_admin/admin/orders': {
-      id: '/_authenticated/_admin/admin/orders'
-      path: '/admin/orders'
-      fullPath: '/admin/orders'
-      preLoaderRoute: typeof AuthenticatedAdminAdminOrdersRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/_admin/admin/users': {
-      id: '/_authenticated/_admin/admin/users'
-      path: '/admin/users'
-      fullPath: '/admin/users'
-      preLoaderRoute: typeof AuthenticatedAdminAdminUsersRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/api/public/hooks/balance-check': {
-      id: '/api/public/hooks/balance-check'
-      path: '/api/public/hooks/balance-check'
-      fullPath: '/api/public/hooks/balance-check'
-      preLoaderRoute: typeof ApiPublicHooksBalanceCheckRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/daily-profit': {
-      id: '/api/public/hooks/daily-profit'
-      path: '/api/public/hooks/daily-profit'
-      fullPath: '/api/public/hooks/daily-profit'
-      preLoaderRoute: typeof ApiPublicHooksDailyProfitRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/paystack': {
-      id: '/api/public/hooks/paystack'
-      path: '/api/public/hooks/paystack'
-      fullPath: '/api/public/hooks/paystack'
-      preLoaderRoute: typeof ApiPublicHooksPaystackRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/retry-failed': {
-      id: '/api/public/hooks/retry-failed'
-      path: '/api/public/hooks/retry-failed'
-      fullPath: '/api/public/hooks/retry-failed'
-      preLoaderRoute: typeof ApiPublicHooksRetryFailedRouteImport
+    '/api/public/hooks/telegram-setup': {
+      id: '/api/public/hooks/telegram-setup'
+      path: '/api/public/hooks/telegram-setup'
+      fullPath: '/api/public/hooks/telegram-setup'
+      preLoaderRoute: typeof ApiPublicHooksTelegramSetupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/telegram': {
@@ -528,12 +486,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksTelegramRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/hooks/telegram-setup': {
-      id: '/api/public/hooks/telegram-setup'
-      path: '/api/public/hooks/telegram-setup'
-      fullPath: '/api/public/hooks/telegram-setup'
-      preLoaderRoute: typeof ApiPublicHooksTelegramSetupRouteImport
+    '/api/public/hooks/retry-failed': {
+      id: '/api/public/hooks/retry-failed'
+      path: '/api/public/hooks/retry-failed'
+      fullPath: '/api/public/hooks/retry-failed'
+      preLoaderRoute: typeof ApiPublicHooksRetryFailedRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/paystack': {
+      id: '/api/public/hooks/paystack'
+      path: '/api/public/hooks/paystack'
+      fullPath: '/api/public/hooks/paystack'
+      preLoaderRoute: typeof ApiPublicHooksPaystackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/daily-profit': {
+      id: '/api/public/hooks/daily-profit'
+      path: '/api/public/hooks/daily-profit'
+      fullPath: '/api/public/hooks/daily-profit'
+      preLoaderRoute: typeof ApiPublicHooksDailyProfitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/balance-check': {
+      id: '/api/public/hooks/balance-check'
+      path: '/api/public/hooks/balance-check'
+      fullPath: '/api/public/hooks/balance-check'
+      preLoaderRoute: typeof ApiPublicHooksBalanceCheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/_admin/admin/users': {
+      id: '/_authenticated/_admin/admin/users'
+      path: '/admin/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AuthenticatedAdminAdminUsersRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/_admin/admin/orders': {
+      id: '/_authenticated/_admin/admin/orders'
+      path: '/admin/orders'
+      fullPath: '/admin/orders'
+      preLoaderRoute: typeof AuthenticatedAdminAdminOrdersRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/_admin/admin/bundles': {
+      id: '/_authenticated/_admin/admin/bundles'
+      path: '/admin/bundles'
+      fullPath: '/admin/bundles'
+      preLoaderRoute: typeof AuthenticatedAdminAdminBundlesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/_admin/admin/orders_/$orderId': {
       id: '/_authenticated/_admin/admin/orders_/$orderId'
