@@ -36,7 +36,9 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+// `error` is typed `unknown` — newer @tanstack/react-router (1.170+) no longer
+// guarantees an Error instance here, and `error: Error` fails the type check.
+function ErrorComponent({ error, reset }: { error: unknown; reset: () => void }) {
   console.error(error);
   const router = useRouter();
 
