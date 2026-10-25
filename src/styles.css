@@ -1,6 +1,8 @@
 @import "tailwindcss" source(none);
 @import "tw-animate-css";
-@import url("https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=Changa+One:ital@0;1&family=Open+Sans:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap");
+/* Only the families the app actually uses (Playfair Display and Plus Jakarta Sans were
+   loaded but never used — removed to save first-visit data on mobile). */
+@import url("https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=Changa+One:ital@0;1&family=Open+Sans:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap");
 @source "../src";
 
 @custom-variant dark (&:is(.dark *));
@@ -8,18 +10,45 @@
 /* ═══════════════════════════════════════════════════
    DESIGN SYSTEM — Eli Data Resales
    Orange (#e65100 / #f37d01) × Black × White
-   Mobile-first. Professional. Ghana-market.
+   Mobile-first. Readable. Ghana-market.
+
+   RULES FOR EVERY SCREEN
+   1. Never hardcode a hex colour in a component — use a token
+      (bg-card, text-foreground, text-muted-foreground, border-border,
+       text-success / bg-success-soft, etc.). Tokens flip with the theme.
+   2. Nothing smaller than 14px (text-xs). Body is 16px.
+   3. Glass = .glass / .glass-strong / .glass-flat (never ad-hoc rgba).
+   4. Page width = .page / .page-narrow. Every <main> keeps
+      style={{ paddingTop: "96px" }} for the fixed nav.
 ═══════════════════════════════════════════════════ */
+
+/* ── TYPE SCALE ─────────────────────────────────────
+   Overriding Tailwind's scale here raises text-xs / text-sm on EVERY
+   screen at once (was 12px / 14px). */
+@theme {
+  --text-xs:                 0.875rem;   /* 14px (was 12px) */
+  --text-xs--line-height:    1.35;
+  --text-sm:                 0.9375rem;  /* 15px (was 14px) */
+  --text-sm--line-height:    1.45;
+  --text-base:               1rem;       /* 16px */
+  --text-base--line-height:  1.6;
+  --text-lg:                 1.1875rem;  /* 19px (was 18px) */
+  --text-lg--line-height:    1.5;
+  --text-xl:                 1.375rem;   /* 22px (was 20px) */
+  --text-xl--line-height:    1.35;
+  --text-2xl:                1.625rem;   /* 26px (was 24px) */
+  --text-2xl--line-height:   1.25;
+}
 
 @theme inline {
   /* Font roles */
-  --font-hero:      "Jost", "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-hero:      "Jost", system-ui, sans-serif;
   --font-eyebrow:   "Changa One", "Open Sans", system-ui, sans-serif;
   --font-heading:   "Open Sans", system-ui, sans-serif;
   --font-body:      "Inter", system-ui, sans-serif;
   --font-card:      "Inter", system-ui, sans-serif;
   --font-display:   "Jost", system-ui, sans-serif;
-  --font-serif:     "Playfair Display", Georgia, serif;
+  --font-serif:     Georgia, "Times New Roman", serif;
   --font-sans:      "Inter", system-ui, sans-serif;
 
   /* Radius scale */
@@ -35,13 +64,34 @@
   --color-foreground:           var(--foreground);
   --color-card:                 var(--card);
   --color-card-foreground:      var(--card-foreground);
+  --color-popover:              var(--popover);
+  --color-popover-foreground:   var(--popover-foreground);
+  --color-secondary:            var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
   --color-muted:                var(--muted);
   --color-muted-foreground:     var(--muted-foreground);
+  --color-accent:               var(--accent);
+  --color-accent-foreground:    var(--accent-foreground);
   --color-primary:              var(--primary);
   --color-primary-foreground:   var(--primary-foreground);
   --color-border:               var(--border);
+  --color-input:                var(--input);
   --color-ring:                 var(--ring);
   --color-destructive:          var(--destructive);
+
+  /* Status colours — theme-aware (use these instead of green-500, red-600 …) */
+  --color-success:       var(--success);
+  --color-success-soft:  var(--success-soft);
+  --color-warning:       var(--warning);
+  --color-warning-soft:  var(--warning-soft);
+  --color-danger:        var(--danger);
+  --color-danger-soft:   var(--danger-soft);
+  --color-info:          var(--info);
+  --color-info-soft:     var(--info-soft);
+
+  /* Glass surfaces */
+  --color-glass:         var(--glass-bg);
+  --color-glass-border:  var(--glass-border);
 }
 
 /* ── LIGHT MODE ── */
@@ -63,12 +113,28 @@
   --muted-foreground:      #555555;
   --accent:                #f37d01;
   --accent-foreground:     #ffffff;
-  --destructive:           #ef4444;
-  --border:                rgba(0,0,0,0.08);
-  --input:                 rgba(0,0,0,0.05);
+  --destructive:           #dc2626;
+  --border:                rgba(0,0,0,0.10);
+  --input:                 rgba(0,0,0,0.06);
   --ring:                  #e65100;
 
-  /* Brand palette */
+  /* Status */
+  --success:       #15803d;
+  --success-soft:  rgba(21,128,61,0.12);
+  --warning:       #b45309;
+  --warning-soft:  rgba(180,83,9,0.12);
+  --danger:        #dc2626;
+  --danger-soft:   rgba(220,38,38,0.10);
+  --info:          #1d4ed8;
+  --info-soft:     rgba(29,78,216,0.10);
+
+  /* Glass */
+  --glass-bg:        rgba(255,255,255,0.72);
+  --glass-bg-strong: rgba(255,255,255,0.88);
+  --glass-border:    rgba(0,0,0,0.08);
+  --glass-shadow:    0 8px 32px rgba(0,0,0,0.08);
+
+  /* Brand palette (reference only — prefer the tokens above) */
   --orange-deep:  #e65100;
   --orange-mid:   #f37d01;
   --orange-light: #ff9800;
@@ -89,17 +155,33 @@
   --popover-foreground:    #f5f5f5;
 
   --primary:               #f37d01;
-  --primary-foreground:    #ffffff;
+  /* Dark text on bright orange (7.6:1). White on #f37d01 was only 2.9:1.
+     One-line revert to the old look: set this back to #ffffff. */
+  --primary-foreground:    #111111;
   --secondary:             rgba(243,125,1,0.12);
   --secondary-foreground:  #f5f5f5;
-  --muted:                 rgba(255,255,255,0.06);
-  --muted-foreground:      #999999;
+  --muted:                 rgba(255,255,255,0.07);
+  --muted-foreground:      #a3a3a3;
   --accent:                #e65100;
   --accent-foreground:     #ffffff;
   --destructive:           #f87171;
-  --border:                rgba(255,255,255,0.08);
-  --input:                 rgba(255,255,255,0.06);
+  --border:                rgba(255,255,255,0.13);
+  --input:                 rgba(255,255,255,0.09);
   --ring:                  #f37d01;
+
+  --success:       #4ade80;
+  --success-soft:  rgba(74,222,128,0.14);
+  --warning:       #fbbf24;
+  --warning-soft:  rgba(251,191,36,0.14);
+  --danger:        #f87171;
+  --danger-soft:   rgba(248,113,113,0.14);
+  --info:          #60a5fa;
+  --info-soft:     rgba(96,165,250,0.14);
+
+  --glass-bg:        rgba(28,28,28,0.62);
+  --glass-bg-strong: rgba(24,24,24,0.86);
+  --glass-border:    rgba(255,255,255,0.12);
+  --glass-shadow:    0 8px 32px rgba(0,0,0,0.45);
 }
 
 /* ════════════════════════════════════════
@@ -107,18 +189,95 @@
 ════════════════════════════════════════ */
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
+html { -webkit-text-size-adjust: 100%; }
+
 body {
   background-color: var(--background);
   color:            var(--foreground);
   font-family:      var(--font-body);
+  font-size:        1rem;
+  line-height:      1.6;
   -webkit-font-smoothing:  antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Soft ambient glow so glass surfaces have something to blur. Fixed pseudo
+   element (not background-attachment: fixed — that janks on mobile). */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60rem 38rem at 88% -8%, rgba(243,125,1,0.10), transparent 60%),
+    radial-gradient(48rem 34rem at -8% 26%, rgba(230,81,0,0.07), transparent 55%);
+}
+.dark body::before {
+  background:
+    radial-gradient(60rem 38rem at 88% -8%, rgba(243,125,1,0.13), transparent 60%),
+    radial-gradient(48rem 34rem at -8% 26%, rgba(230,81,0,0.09), transparent 55%);
+}
+
+/* iOS zooms in on inputs under 16px — keep every form control at 16px+ */
+input, select, textarea { font-size: 1rem; }
+
+/* One consistent keyboard-focus ring everywhere */
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }
 
 /* ════════════════════════════════════════
    COMPONENT LAYER
 ════════════════════════════════════════ */
 @layer components {
+
+  /* ── Page containers (use inside <main style={{paddingTop:"96px"}}>) ── */
+  .page        { width: 100%; max-width: 72rem; margin-inline: auto; padding-inline: 1rem; padding-bottom: 5rem; }
+  .page-narrow { width: 100%; max-width: 42rem; margin-inline: auto; padding-inline: 1rem; padding-bottom: 5rem; }
+  @media (min-width: 768px) {
+    .page, .page-narrow { padding-inline: 1.5rem; }
+  }
+
+  /* ── Glass surfaces ──
+     .glass        cards / panels (blur)
+     .glass-strong modals, sheets, popovers (more opaque + more blur)
+     .glass-flat   long lists & bundle grids — translucent, NO blur
+                   (blur is costly on low-end Android phones)
+     Without backdrop-filter support they fall back to solid card colour. */
+  .glass {
+    background:    var(--glass-bg);
+    border:        1px solid var(--glass-border);
+    border-radius: var(--radius-2xl);
+    box-shadow:    var(--glass-shadow);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    backdrop-filter:         blur(16px) saturate(140%);
+  }
+  .glass-strong {
+    background:    var(--glass-bg-strong);
+    border:        1px solid var(--glass-border);
+    border-radius: var(--radius-2xl);
+    box-shadow:    var(--glass-shadow);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    backdrop-filter:         blur(24px) saturate(150%);
+  }
+  .glass-flat {
+    background:    var(--glass-bg);
+    border:        1px solid var(--glass-border);
+    border-radius: var(--radius-2xl);
+  }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass, .glass-strong, .glass-flat { background: var(--card); }
+  }
+
+  /* Fixed top nav — spec is fixed (always dark glass, both themes) */
+  .glass-nav {
+    background: rgba(13,17,23,0.82);
+    -webkit-backdrop-filter: blur(24px);
+    backdrop-filter:         blur(24px);
+    border: 1px solid rgba(255,255,255,0.10);
+  }
 
   /* ── Hero heading ── */
   .hero-h1 {
@@ -134,17 +293,18 @@ body {
   /* ── Section eyebrow ── */
   .eyebrow {
     font-family:    var(--font-eyebrow);
-    font-size:      0.7rem;
+    font-size:      0.875rem;
     font-weight:    400;
-    letter-spacing: 0.16em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    color:          var(--orange-mid);
+    color:          var(--primary);
   }
 
   /* ── Section heading H2 ── */
   .section-h2 {
     font-family: var(--font-heading);
     font-weight: 900;
+    font-size:   clamp(1.75rem, 4.5vw, 2.5rem);
     line-height: 1.15;
     text-wrap:   balance;
   }
@@ -161,17 +321,13 @@ body {
 
   /* ── Feature card ── */
   .feature-card {
-    background:    #ffffff;
-    border:        1px solid rgba(0,0,0,0.07);
+    background:    var(--card);
+    border:        1px solid var(--border);
     border-radius: var(--radius-2xl);
     transition:
       transform     0.30s cubic-bezier(0.22,1,0.36,1),
       box-shadow    0.30s cubic-bezier(0.22,1,0.36,1),
       border-color  0.30s ease;
-  }
-  .dark .feature-card {
-    background:  #1a1a1a;
-    border-color: rgba(255,255,255,0.07);
   }
   .feature-card:hover {
     transform:    translateY(-4px);
@@ -189,47 +345,45 @@ body {
   /* ── Network tab pill strip ── */
   .network-strip {
     display:          inline-flex;
-    border:           2px solid #111111;
+    border:           2px solid var(--foreground);
     border-radius:    9999px;
-    padding:          2px;
-    background:       #ffffff;
+    padding:          3px;
+    background:       var(--card);
     gap:              0px;
     overflow:         hidden;
   }
-  .dark .network-strip {
-    border-color: rgba(255,255,255,0.18);
-    background:   #1a1a1a;
-  }
+  .dark .network-strip { border-color: rgba(255,255,255,0.22); }
   .network-tab {
     border-radius:  9999px;
-    padding:        7px 20px;
+    min-height:     44px;
+    padding:        0 22px;
     font-family:    var(--font-heading);
     font-weight:    700;
-    font-size:      0.8125rem;
+    font-size:      0.9375rem;
     letter-spacing: 0.01em;
     transition:     background 0.2s ease, color 0.2s ease;
     cursor:         pointer;
     white-space:    nowrap;
-    color:          #555555;
+    color:          var(--muted-foreground);
     background:     transparent;
     border:         none;
     outline:        none;
   }
   .network-tab.active {
-    background: #111111;
-    color:      #ffffff;
+    background: var(--foreground);
+    color:      var(--background);
   }
-  .dark .network-tab       { color: #999999; }
   .dark .network-tab.active {
-    background: #f37d01;
-    color:      #ffffff;
+    background: var(--primary);
+    color:      var(--primary-foreground);
   }
 
   /* ── Bundle card ── */
   .bundle-card {
-    background:    #ffffff;
-    border:        1px solid rgba(0,0,0,0.07);
+    background:    var(--card);
+    border:        1px solid var(--border);
     border-radius: var(--radius-2xl);
+    color:         var(--card-foreground);
     overflow:      hidden;
     cursor:        pointer;
     position:      relative;
@@ -243,85 +397,74 @@ body {
       transform  0.28s cubic-bezier(0.22,1,0.36,1),
       box-shadow 0.28s cubic-bezier(0.22,1,0.36,1);
   }
-  .dark .bundle-card {
-    background:   #1c1c1c;
-    border-color: rgba(255,255,255,0.07);
-  }
   .bundle-card:hover {
     transform:  translateY(-6px);
     box-shadow: 0 20px 48px rgba(0,0,0,0.14);
   }
+  .dark .bundle-card:hover { box-shadow: 0 20px 48px rgba(0,0,0,0.5); }
   .bundle-card:active { transform: scale(0.97); }
 
   /* Network badge inside card */
-  .net-badge-mtn {
-    display:       inline-flex;
-    align-items:   center;
-    justify-content: center;
-    border:        1.5px solid #111111;
-    border-radius: 9999px;
-    padding:       3px 10px;
-    font-family:   var(--font-heading);
-    font-weight:   900;
-    font-size:     0.65rem;
-    letter-spacing: 0.06em;
-    color:         #e6b800;
-    background:    #111111;
-  }
-  .net-badge-telecel {
-    display:       inline-flex;
-    align-items:   center;
-    justify-content: center;
-    border:        1.5px solid #E30613;
-    border-radius: 9999px;
-    padding:       3px 10px;
-    font-family:   var(--font-heading);
-    font-weight:   900;
-    font-size:     0.65rem;
-    letter-spacing: 0.06em;
-    color:         #ffffff;
-    background:    #E30613;
-  }
+  .net-badge-mtn,
+  .net-badge-telecel,
   .net-badge-at {
-    display:       inline-flex;
-    align-items:   center;
+    display:         inline-flex;
+    align-items:     center;
     justify-content: center;
-    border-radius: 9999px;
-    padding:       3px 10px;
-    font-family:   var(--font-heading);
-    font-weight:   900;
-    font-size:     0.65rem;
-    letter-spacing: 0.06em;
-    color:         #ffffff;
-    background:    linear-gradient(90deg,#E30613,#002868);
+    border-radius:   9999px;
+    padding:         3px 12px;
+    font-family:     var(--font-heading);
+    font-weight:     900;
+    font-size:       0.875rem;
+    letter-spacing:  0.05em;
+    color:           #ffffff;
   }
+  .net-badge-mtn     { color: #ffcc00; background: #111111; border: 1.5px solid #111111; }
+  .dark .net-badge-mtn { border-color: rgba(255,204,0,0.45); }
+  .net-badge-telecel { background: #E30613; border: 1.5px solid #E30613; }
+  .net-badge-at      { background: linear-gradient(90deg,#E30613,#002868); }
 
-  /* ── Buy bundle button ── */
+  /* ── Buy bundle button ──
+     Light: white on orange. Dark: near-black on orange (token-driven, so
+     it always matches the shadcn <Button>). */
   .btn-orange {
-    background:    linear-gradient(135deg, #e65100 0%, #f37d01 100%);
-    color:         #ffffff;
-    border:        none;
-    border-radius: 9999px;
-    font-family:   var(--font-heading);
-    font-weight:   700;
-    letter-spacing: 0.01em;
-    cursor:        pointer;
-    transition:    transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
-    box-shadow:    0 4px 16px rgba(230,81,0,0.28);
+    display:         inline-flex;
+    align-items:     center;
+    justify-content: center;
+    gap:             0.5rem;
+    min-height:      48px;
+    background:      linear-gradient(135deg, #e65100 0%, #f37d01 100%);
+    color:           var(--primary-foreground);
+    border:          none;
+    border-radius:   9999px;
+    font-family:     var(--font-heading);
+    font-weight:     700;
+    font-size:       1rem;
+    letter-spacing:  0.01em;
+    cursor:          pointer;
+    transition:      transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    box-shadow:      0 4px 16px rgba(230,81,0,0.28);
   }
   .btn-orange:hover  { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(230,81,0,0.38); }
   .btn-orange:active { transform: scale(0.97); opacity: 0.92; }
+  .btn-orange:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
 
-  /* ── Track order ghost button ── */
+  /* ── Ghost button (on dark / orange backgrounds) ── */
   .btn-white-ghost {
-    background:    rgba(255,255,255,0.12);
-    color:         #ffffff;
-    border:        1.5px solid rgba(255,255,255,0.40);
-    border-radius: 9999px;
-    font-family:   var(--font-heading);
-    font-weight:   600;
-    cursor:        pointer;
-    transition:    background 0.2s, border-color 0.2s, transform 0.2s;
+    display:         inline-flex;
+    align-items:     center;
+    justify-content: center;
+    gap:             0.5rem;
+    min-height:      48px;
+    background:      rgba(255,255,255,0.12);
+    color:           #ffffff;
+    border:          1.5px solid rgba(255,255,255,0.40);
+    border-radius:   9999px;
+    font-family:     var(--font-heading);
+    font-weight:     600;
+    font-size:       1rem;
+    cursor:          pointer;
+    transition:      background 0.2s, border-color 0.2s, transform 0.2s;
   }
   .btn-white-ghost:hover {
     background:   rgba(255,255,255,0.20);
@@ -329,9 +472,10 @@ body {
     transform:    translateY(-1px);
   }
 
-  /* ── Footer ── */
+  /* ── Footer — darkened so white text passes contrast ── */
   .site-footer {
-    background: linear-gradient(135deg, #bf360c 0%, #e65100 40%, #f37d01 100%);
+    background: linear-gradient(135deg, #8f2a00 0%, #bf360c 45%, #d44100 100%);
+    color:      #ffffff;
   }
 
   /* ── WhatsApp float ── */
