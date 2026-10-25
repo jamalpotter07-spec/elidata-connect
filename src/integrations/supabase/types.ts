@@ -74,7 +74,6 @@ export type Database = {
           reseller_reference: string | null
           retry_count: number
           status: Database["public"]["Enums"]["order_status"]
-          stuck_alert_sent_at: string | null
           updated_at: string
           user_id: string | null
         }
@@ -92,7 +91,6 @@ export type Database = {
           reseller_reference?: string | null
           retry_count?: number
           status?: Database["public"]["Enums"]["order_status"]
-          stuck_alert_sent_at?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -110,7 +108,6 @@ export type Database = {
           reseller_reference?: string | null
           retry_count?: number
           status?: Database["public"]["Enums"]["order_status"]
-          stuck_alert_sent_at?: string | null
           updated_at?: string
           user_id?: string | null
         }
