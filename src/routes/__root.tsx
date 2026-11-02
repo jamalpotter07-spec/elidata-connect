@@ -92,9 +92,23 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/yZoBj2eh2hhaXNnmPxmgEQQkihk1/social-images/social-1781475903863-2026-06-14_22.20.47.webp" },
     ],
     links: [
+      { rel: "preconnect", href: "https://api.fontshare.com" },
+      { rel: "preconnect", href: "https://cdn.fontshare.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&f[]=general-sans@400,500,600,700&display=swap",
+      },
       {
         rel: "stylesheet",
         href: appCss,
+      },
+    ],
+    // Runs before first paint so the page never flashes the wrong theme.
+    // No saved choice = follow the phone's light/dark setting.
+    scripts: [
+      {
+        children:
+          "(function(){try{var t=localStorage.getItem('theme');var d=t==='dark'||((!t||t==='system')&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.documentElement.classList.add('dark');}catch(e){}})();",
       },
     ],
   }),
@@ -106,7 +120,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>

@@ -1,10 +1,21 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { Moon, Sun } from "lucide-react";
 
 type Theme = "light" | "dark" | "system";
 type Ctx = { theme: Theme; setTheme: (t: Theme) => void; resolved: "light" | "dark" };
 const ThemeCtx = createContext<Ctx | null>(null);
 
-const DEFAULT_THEME: Theme = "dark";
+// First-time visitors follow their phone. Once someone taps the toggle, that choice is remembered.
+const DEFAULT_THEME: Theme = "system";
+
+function readStored(): Theme {
+  try {
+    const v = localStorage.getItem("theme");
+    return v === "light" || v === "dark" || v === "system" ? v : DEFAULT_THEME;
+  } catch {
+    return DEFAULT_THEME;
+  }
+}
 
 function applyTheme(t: Theme): "light" | "dark" {
   const sys = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
@@ -15,23 +26,26 @@ function applyTheme(t: Theme): "light" | "dark" {
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(DEFAULT_THEME);
-  const [resolved, setResolved] = useState<"light" | "dark">("dark");
+  const [resolved, setResolved] = useState<"light" | "dark">("light");
 
   useEffect(() => {
-    const stored = (localStorage.getItem("theme") as Theme) || DEFAULT_THEME;
+    const stored = readStored();
     setThemeState(stored);
     setResolved(applyTheme(stored));
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const onChange = () => {
-      const t = (localStorage.getItem("theme") as Theme) || DEFAULT_THEME;
-      if (t === "system") setResolved(applyTheme("system"));
+      if (readStored() === "system") setResolved(applyTheme("system"));
     };
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);
   }, []);
 
   const setTheme = (t: Theme) => {
-    localStorage.setItem("theme", t);
+    try {
+      localStorage.setItem("theme", t);
+    } catch {
+      /* private mode: still apply for this visit */
+    }
     setThemeState(t);
     setResolved(applyTheme(t));
   };
@@ -45,19 +59,17 @@ export function useTheme() {
   return ctx;
 }
 
-import { Moon, Sun } from "lucide-react";
-
 export function ThemeToggle() {
-  const { theme, setTheme, resolved } = useTheme();
+  const { setTheme, resolved } = useTheme();
   const next = resolved === "dark" ? "light" : "dark";
   return (
     <button
       onClick={() => setTheme(next)}
-      className="inline-flex h-9 w-9 items-center justify-center rounded-full border bg-card text-foreground/80 hover:text-foreground hover:bg-accent transition"
+      className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-foreground transition hover:bg-accent active:scale-95"
       aria-label={`Switch to ${next} mode`}
       title={`Switch to ${next} mode`}
     >
-      {resolved === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      {resolved === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
     </button>
   );
 }
