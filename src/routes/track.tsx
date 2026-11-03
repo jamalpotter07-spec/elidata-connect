@@ -10,6 +10,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation } from "@tanstack/react-query";
 import { searchOrdersByPhone } from "@/lib/orders.functions";
 import { NavBar } from "@/components/nav-bar";
+import { balanceCode } from "@/lib/balance-codes";
 import { WhatsAppFloat } from "@/components/whatsapp-float";
 import {
   Search,
@@ -350,18 +351,13 @@ function TrackSearchPage() {
                 <p
                   style={{
                     fontFamily:    "var(--font-body)",
-                    fontSize:      "0.7rem",
+                    fontSize:      "0.875rem",
                     color:         "var(--muted-foreground)",
                     paddingTop:    "12px",
                     lineHeight:    1.55,
                   }}
                 >
-                  Use the phone number you entered at checkout. Check balance after delivery:{" "}
-                  <code style={{ fontWeight: 700, color: "var(--foreground)" }}>*124#</code> (MTN)
-                  {" · "}
-                  <code style={{ fontWeight: 700, color: "var(--foreground)" }}>*110#</code> (Telecel)
-                  {" · "}
-                  <code style={{ fontWeight: 700, color: "var(--foreground)" }}>*100#</code> (AT)
+                  Use the phone number you entered at checkout.
                 </p>
               </div>
             </div>
@@ -613,6 +609,15 @@ function TrackSearchPage() {
                               </span>
                             </div>
                           </div>
+
+                          {order.status === "delivered" && (
+                            <p className="border-t border-border px-5 py-3 text-sm text-muted-foreground">
+                              Check your balance: dial{" "}
+                              <code className="rounded-md bg-muted px-1.5 py-0.5 font-mono font-semibold text-foreground">
+                                {balanceCode(order.network)}
+                              </code>
+                            </p>
+                          )}
                         </div>
                       </Link>
                     );

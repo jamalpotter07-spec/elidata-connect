@@ -9,9 +9,9 @@ export function WhatsAppFloat() {
       className="wa-float fixed z-40 flex items-center justify-center"
       style={{
         right:  "16px",
-        bottom: "calc(max(80px, env(safe-area-inset-bottom)) + 68px)",
-        width:  "52px",
-        height: "52px",
+        bottom: "calc(env(safe-area-inset-bottom, 0px) + 96px)",
+        width:  "56px",
+        height: "56px",
       }}
     >
       <svg viewBox="0 0 24 24" style={{ width: "26px", height: "26px" }} fill="white" xmlns="http://www.w3.org/2000/svg">

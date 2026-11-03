@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getGuestOrder } from "@/lib/orders.functions";
 import { NavBar } from "@/components/nav-bar";
+import { balanceCode } from "@/lib/balance-codes";
 import {
   CheckCircle2, Clock, Loader2, MessageCircle,
   ChevronRight, Copy, Check, PackageCheck, PackageX,
@@ -383,8 +384,8 @@ function TrackPage() {
                 <div
                   className="rounded-3xl p-5"
                   style={{
-                    background: "rgba(34,197,94,0.06)",
-                    border:     "1px solid rgba(34,197,94,0.20)",
+                    background: "var(--success-soft)",
+                    border:     "1px solid var(--border)",
                   }}
                 >
                   <div className="flex items-center gap-2 mb-2">
@@ -396,28 +397,28 @@ function TrackPage() {
                         width:          "28px",
                         height:         "28px",
                         borderRadius:   "50%",
-                        background:     "rgba(34,197,94,0.12)",
+                        background:     "var(--success-soft)",
                         flexShrink:     0,
                       }}
                     >
-                      <PackageCheck style={{ width: "14px", height: "14px", color: "#16a34a" }} />
+                      <PackageCheck style={{ width: "16px", height: "16px", color: "var(--success)" }} />
                     </span>
                     <span
                       style={{
                         fontFamily: "var(--font-heading)",
                         fontWeight: 700,
-                        fontSize:   "0.95rem",
-                        color:      "#16a34a",
+                        fontSize:   "1.0625rem",
+                        color:      "var(--success)",
                       }}
                     >
                       Data delivered successfully
                     </span>
                   </div>
-                  <p style={{ fontFamily: "var(--font-body)", fontSize: "0.78rem", color: "#555", lineHeight: 1.6 }}>
+                  <p style={{ fontFamily: "var(--font-body)", fontSize: "1rem", color: "var(--muted-foreground)", lineHeight: 1.6 }}>
                     Check your balance: dial{" "}
-                    <code style={{ fontWeight: 700, color: "#111" }}>*124#</code> (MTN)
-                    {" · "}<code style={{ fontWeight: 700, color: "#111" }}>*110#</code> (Telecel)
-                    {" · "}<code style={{ fontWeight: 700, color: "#111" }}>*100#</code> (AT)
+                    <code className="rounded-md bg-muted px-1.5 py-0.5 font-mono font-semibold text-foreground">
+                      {balanceCode(order.network)}
+                    </code>
                   </p>
                 </div>
               ) : failed ? (

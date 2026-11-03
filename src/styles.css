@@ -243,9 +243,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Clash Display has a narrow space glyph. A little word-spacing and lighter
+   tracking keep words apart ("Talk to us", not "Talktous"). */
 h1, h2, h3 {
   font-family:    var(--font-display);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
+  word-spacing:   0.12em;
   text-wrap:      balance;
 }
 
@@ -379,8 +382,9 @@ input, select, textarea { font-size: 1rem; }
   .hero-h1 {
     font-family:    var(--font-hero);
     font-weight:    700;
-    line-height:    1.06;
-    letter-spacing: -0.025em;
+    line-height:    1.08;
+    letter-spacing: -0.015em;
+    word-spacing:   0.12em;
     text-wrap:      balance;
   }
   .hero-h1 .word-white  { color: #ffffff; }
@@ -402,7 +406,8 @@ input, select, textarea { font-size: 1rem; }
     font-weight:    700;
     font-size:      clamp(1.75rem, 4.5vw, 2.5rem);
     line-height:    1.12;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
+    word-spacing:   0.12em;
     text-wrap:      balance;
   }
 

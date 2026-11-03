@@ -1,33 +1,31 @@
-import logoImg from "@/assets/logo.png";
+import logoMark from "@/assets/logo-mark.png";
 
-export function Logo({ className = "" }: { className?: string }) {
+// The mark is a transparent PNG used as a mask, so it takes the current text
+// colour: dark on light pages, light on dark pages. Never invisible.
+export function LogoMark({ className = "h-9 w-9" }: { className?: string }) {
+  const mask = `url(${logoMark}) center / contain no-repeat`;
   return (
-    <div className={`inline-flex items-center gap-2 ${className}`}>
-      {/* Logo PNG — larger, pinned left */}
-      <img
-        src={logoImg}
-        alt="Eli Data Resales logo"
-        className="h-9 w-9 object-contain shrink-0"
-      />
-      {/* Text block */}
-      <span className="flex flex-col leading-none gap-[1px]">
-        {/* "Eli Data" — pink/purple/orange gradient */}
-        <span
-          className="text-[13px] font-extrabold tracking-tight"
-          style={{
-            background: "linear-gradient(90deg, #f472b6 0%, #a855f7 50%, #f97316 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
-          }}
-        >
-          Eli Data
+    <span
+      role="img"
+      aria-label="Eli Data Resales logo"
+      className={`inline-block shrink-0 bg-foreground ${className}`}
+      style={{ WebkitMask: mask, mask }}
+    />
+  );
+}
+
+export function Logo({ className = "", showText = true }: { className?: string; showText?: boolean }) {
+  return (
+    <div className={`inline-flex items-center gap-2.5 ${className}`}>
+      <LogoMark />
+      {showText && (
+        <span className="flex flex-col leading-none">
+          <span className="font-display text-[1.125rem] font-semibold tracking-tight text-foreground">
+            Eli Data
+          </span>
+          <span className="mt-0.5 text-sm font-medium text-muted-foreground">Resales</span>
         </span>
-        {/* "Resales" — adaptive colour */}
-        <span className="text-[11px] font-semibold tracking-wide text-foreground/70">
-          Resales
-        </span>
-      </span>
+      )}
     </div>
   );
 }
